@@ -1,7 +1,7 @@
-(ns dei.main
-  (:require [clojure.java.io :as io]
+(ns delilah.main
+  (:require [clojure.edn :as edn]
+            [clojure.java.io :as io]
 
-            [clj-time.core   :as t]
             [clj-time.format :as f]
             [etaoin.api      :as api]
             [etaoin.keys     :as k]))
@@ -28,7 +28,9 @@
   (api/with-firefox-headless
     {:path-driver "resources/geckodriver"}
     driver
-    (let [ctx (slurp (io/resource "config.edn"))]
+    (let [ctx (-> (io/resource "config.edn")
+                  slurp
+                  (edn/read-string))]
       (-> driver
           (log-in ctx)
           (latest-bill-date ctx)))))
