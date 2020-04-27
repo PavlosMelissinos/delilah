@@ -9,7 +9,7 @@
             hickory                      {:mvn/version "0.7.1"}
             enlive                       {:mvn/version "1.1.6"}
             etaoin                       {:mvn/version "0.3.6"}
-            clj-time                     {:mvn/version "0.15.2"}}
+            clojure.java-time            {:mvn/version "0.3.2"}}
  :aliases  {:dev  {:extra-paths ["dev"
                                  "test"
                                  "test-resources"]
@@ -19,5 +19,6 @@
             :test {:extra-paths ["test"
                                  "test-resources"]
                    :extra-deps  {lambdaisland/kaocha {:mvn/version "0.0-418"}}
-                   :main-opts   ["-m" "kaocha.runner" "--config-file" "kaocha.edn"]}}}
+                   :main-opts   ["-m" "kaocha.runner" "--config-file" "kaocha.edn"]}
+            :run  {:main-opts ["-m" "delilah.main"]}}}
 

@@ -1,5 +1,5 @@
 (ns delilah.dei.parser
-  (:require [clj-time.format :as f]
+  (:require [java-time :as t]
             [hickory.select :as hs]))
 
 ;;;;;;;;;;;;;;; Selectors ;;;;;;;;;;;;;;;
@@ -35,11 +35,11 @@
          {})))
 
 (defn bills [dom]
-  (let [formatter (f/formatter "dd.MM.yyyy")]
+  (let [formatter "dd.MM.yyyy"]
     (->> dom
          (hs/select (:bills selectors))
          (map #(hash-map :bill-date (-> (get-in % [:attrs :title])
                                         (clojure.string/split #" ")
                                         second
-                                        ((partial f/parse formatter)))
-                         :pdf-url   (get-in % [:attrs :href]))))))
+                                        ((partial t/local-date formatter)))
+                         :pdf-url   (str "https://www.dei.gr/EBill/" (get-in % [:attrs :href])))))))
