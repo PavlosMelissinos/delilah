@@ -1,5 +1,6 @@
 (ns delilah.dei.core
-  (:require [clojure.tools.logging :as log]
+  (:require [clojure.java.io :as io]
+            [clojure.tools.logging :as log]
 
             [clj-http.client :as http]
             [etaoin.api :as api]
@@ -17,36 +18,57 @@
     (api/fill :txtPassword pass k/enter)
     (api/wait-visible {:tag :div :fn/has-class "BillItem"})))
 
-(defn download-file [url dest]
-  (let [file-out (clojure.java.io/file dest)]
-    (-> url
-        (http/get {:as :stream})
-        :body
-        (clojure.java.io/copy file-out))
-    (api/wait-predicate #(.exists file-out))))
+(defn download-bill [driver {:keys [pdf-url download-dir dest-file] :as bill}]
+  (let [filepath         (format "%s/%s" download-dir dest-file)
+        filepath-partial (str filepath ".part")]
+    (io/delete-file filepath "blurp")
+    (io/delete-file filepath-partial "blurp")
+    (log/info (format "Downloading %s to %s" pdf-url filepath))
+    (io/make-parents filepath)
+    (api/go driver pdf-url)
+    (api/wait-predicate #(and (.exists (io/file filepath))
+                              (not (.exists (io/file filepath-partial)))))
+    filepath))
+
+(defn collect-browser-data [{:keys [cache-dir] :as ctx}]
+  (let [download-dir (str cache-dir "/downloads")]
+    (api/with-driver
+      :firefox {:headless true
+                :path-driver "resources/geckodriver"
+                :load-strategy :none
+                :download-dir download-dir} driver
+      (let [dom  (-> (log-in driver ctx)
+                     api/get-source
+                     cparser/parse)
+            data {:base-url      "https://www.dei.gr/EBill"
+                  :download-dir  download-dir
+                  :customer-code (-> driver
+                                     api/get-url
+                                     (clj-http.links/read-link-params)
+                                     :CustomerCode)
+                  :property-info (parser/property-info dom)}
+            bills (for [bill (parser/bills dom)]
+                    (assoc bill
+                      :download-dir download-dir
+                      :dest-file (->> bill
+                                      :bill-date
+                                      parser/format-date
+                                      (format "%s_%s.pdf" (-> data :customer-code)))))]
+        (doseq [bill bills] (download-bill driver bill))
+        (assoc data :bills bills)))))
 
 (defn do-task [ctx]
-  (api/with-driver
-    :firefox {:headless true
-              :path-driver "resources/geckodriver"
-              :download-dir "/tmp"} driver
-    (let [dom  (-> (log-in driver ctx)
-                   api/get-source
-                   cparser/parse)
-          data {:base-url      "https://www.dei.gr/EBill"
-                :property-info (parser/property-info dom)
-                :bills         (parser/bills dom)}]
-      (doseq [{:keys [pdf-url bill-date] :as bill} (:bills data)]
-        (let [filepath (->> (clojure.string/split pdf-url #"FileName=")
-                            last
-                            (format "/tmp/%s"))]
-          (log/info (format "Downloading %s to %s" pdf-url filepath))
-          (download-file pdf-url filepath)))
-      data)))
+  (let [browser-data (collect-browser-data ctx)]
+    ;TODO: parse pdfs
+    browser-data))
 
 (comment
   (def ctx (-> (io/resource "config.edn")
                slurp
                (edn/read-string)))
+  (def dom (-> (log-in driver ctx)
+               api/get-source
+               cparser/parse))
+  (def data (do-task ctx))
   (def driver (api/firefox {:headless true
                             :path-driver "resources/geckodriver"})))

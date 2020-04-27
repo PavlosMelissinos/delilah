@@ -2,13 +2,16 @@
   (:require [java-time :as t]
             [hickory.select :as hs]))
 
+(defn format-date [date]
+  (t/format "YYYY-MM-dd" date))
+
 ;;;;;;;;;;;;;;; Selectors ;;;;;;;;;;;;;;;
 
 (def selectors
   {:property-info {:title (hs/descendant
                             (hs/class "header_row")
                             (hs/class "header"))
-                   :customer-code (hs/id "ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerCode_value")
+                   :contract-account (hs/id "ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerCode_value")
                    :customer-name (hs/id "ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerName_value")
                    :customer-street (hs/id "ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerStreet_value")
                    :customer-street-number (hs/id "ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerStreetNumber_value")
