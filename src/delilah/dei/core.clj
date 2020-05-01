@@ -11,18 +11,21 @@
             [delilah.dei.parser :as parser]))
 
 (defn log-in [driver {:keys [user pass] :as ctx}]
+  (log/info "Signing into DEI account...")
   (doto driver
     (api/go "https://www.dei.gr/EBill/Login.aspx")
     (api/wait-visible {:id :txtUserName})
     (api/fill :txtUserName user)
     (api/fill :txtPassword pass k/enter)
-    (api/wait-visible {:tag :div :fn/has-class "BillItem"})))
+    (api/wait-visible {:tag :div :fn/has-class "BillItem"}))
+  (log/info "Connected!")
+  driver)
 
 (defn download-bill [driver {:keys [pdf-url download-dir dest-file] :as bill}]
   (let [filepath         (format "%s/%s" download-dir dest-file)
         filepath-partial (str filepath ".part")]
-    (io/delete-file filepath "blurp")
-    (io/delete-file filepath-partial "blurp")
+    (io/delete-file filepath true)
+    (io/delete-file filepath-partial true)
     (log/info (format "Downloading %s to %s" pdf-url filepath))
     (io/make-parents filepath)
     (api/go driver pdf-url)
@@ -32,30 +35,23 @@
 
 (defn collect-browser-data [{:keys [cache-dir] :as ctx}]
   (let [download-dir (str cache-dir "/downloads")]
+    (log/info "Loading web driver...")
     (api/with-driver
       :firefox {:headless true
                 :path-driver "resources/geckodriver"
                 :load-strategy :none
                 :download-dir download-dir} driver
-      (let [dom  (-> (log-in driver ctx)
-                     api/get-source
-                     cparser/parse)
-            data {:base-url      "https://www.dei.gr/EBill"
-                  :download-dir  download-dir
-                  :customer-code (-> driver
-                                     api/get-url
-                                     (clj-http.links/read-link-params)
-                                     :CustomerCode)
-                  :property-info (parser/property-info dom)}
-            bills (for [bill (parser/bills dom)]
-                    (assoc bill
-                      :download-dir download-dir
-                      :dest-file (->> bill
-                                      :bill-date
-                                      parser/format-date
-                                      (format "%s_%s.pdf" (-> data :customer-code)))))]
-        (doseq [bill bills] (download-bill driver bill))
-        (assoc data :bills bills)))))
+      (let [dom  (->> (log-in driver ctx)
+                      api/get-source
+                      cparser/parse)
+            _     (log/info "Throwing out the garbage...")
+            data  (parser/parse dom)
+            bills (map #(assoc % :download-dir download-dir) (:bills data))
+            data  (assoc data :bills bills)]
+        (log/info "Downloading bill files")
+        (doseq [bill bills]
+          (download-bill driver bill))
+        data))))
 
 (defn do-task [ctx]
   (let [browser-data (collect-browser-data ctx)]
