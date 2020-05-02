@@ -12,8 +12,9 @@
 
 
 (comment
-  (let [ctx (->> (io/resource "config.edn")
+  (do
+    (def ctx (-> (io/resource "config.edn")
                  slurp
                  (edn/read-string)
-                 (assoc :provider "dei"))]
+                 (assoc :provider "dei")))
     (parse ctx)))
