@@ -11,10 +11,12 @@
             [delilah.dei.parser :as parser]))
 
 (defn log-in [driver {:keys [user pass] :as ctx}]
-  (log/info "Signing into DEI account...")
+  (log/info "Firing up DEI sign-in page...")
   (doto driver
     (api/go "https://www.dei.gr/EBill/Login.aspx")
-    (api/wait-visible {:id :txtUserName})
+    (api/wait-visible {:id :txtUserName}))
+  (log/info "Signing into DEI account...")
+  (doto driver
     (api/fill :txtUserName user)
     (api/fill :txtPassword pass k/enter)
     (api/wait-visible {:tag :div :fn/has-class "BillItem"}))

@@ -13,8 +13,8 @@
 
 (comment
   (do
-    (def ctx (-> (io/resource "config.edn")
-                 slurp
-                 (edn/read-string)
-                 (assoc :provider "dei")))
+    (def ctx {:provider "dei"
+              :cache-dir "/path/to/delilah/cache/dei"
+              :user     ""
+              :pass     ""})
     (parse ctx)))
