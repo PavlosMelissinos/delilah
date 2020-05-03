@@ -2,44 +2,28 @@
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
 
-            [hugsql.core :as hugsql]
-            [hugsql.adapter.next-jdbc :as next-adapter]
-            [next.jdbc :as jdbc]
-            [next.jdbc.connection :as connection]
-            ;[jdbc.pool.c3p0 :as pool]
+            [delilah.api :as delilah]
+            [philistine.db :as db]))
 
-            [delilah.api :as delilah])
-  (:import (com.mchange.v2.c3p0 ComboPooledDataSource PooledDataSource)))
+(defn enrich-provider-cfg [{:keys [provider] :as provider-cfg} default-cache-dir]
+  (assoc provider-cfg :cache-dir (format "%s/%s" default-cache-dir provider)))
 
-
-(defn app-init []
-  (hugsql/set-adapter! (next-adapter/hugsql-adapter-next-jdbc)))
+(defn load-config []
+  (let [{:delilah/keys [services] :keys [cache-dir] :as ctx}
+        (-> (io/resource "config.edn")
+            slurp
+            edn/read-string)]
+    (assoc ctx :delilah/services (map #(enrich-provider-cfg % cache-dir) services))))
 
 (defn do-task []
-  (let [ctx             (-> (io/resource "config.edn")
-                            slurp
-                            (edn/read-string))
-        active-services (->> ctx
-                             :delilah.services
-                             (filter :active))]
-    #_(app-init)
-    (doseq [{:keys [provider] :as provider-cfg} active-services]
-      (-> provider-cfg
-          (assoc :cache-dir (format "%s/%s" (:cache-dir ctx) provider))
-          delilah/parse))))
+  (let [{:db/keys [connection] :delilah/keys [services]} (load-config)
+
+        active-services (filter :active services)]
+    (db/init connection)
+    (doseq [provider-cfg active-services]
+      (delilah/parse provider-cfg))))
 
 (defn -main
   [& args]
   (do-task)
   (System/exit 0))
-
-(comment
-  (do
-    (require '[jdbc.pool.c3p0 :as pool])
-    (def conn (pool/make-datasource-spec {:connection-uri    ""
-                                          :classname         "org.postgresql.Driver"
-                                          :user              ""
-                                          :password          ""
-                                          :initial-pool-size 3
-                                          :min-pool-size     3
-                                          :max-pool-size     15}))))
