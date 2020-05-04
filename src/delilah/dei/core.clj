@@ -2,7 +2,6 @@
   (:require [clojure.java.io :as io]
             [clojure.tools.logging :as log]
 
-            [clj-http.client :as http]
             [etaoin.api :as api]
             [etaoin.keys :as k]
             [java-time :as t]
@@ -22,6 +21,11 @@
     (api/wait-visible {:tag :div :fn/has-class "BillItem"}))
   (log/info "Connected!")
   driver)
+
+(defn ->dom [driver ctx]
+  (->> (log-in driver ctx)
+       api/get-source
+       cparser/parse))
 
 (defn download-bill [driver {:keys [pdf-url download-dir dest-file] :as bill}]
   (let [filepath         (format "%s/%s" download-dir dest-file)
@@ -43,11 +47,7 @@
                 :path-driver "resources/geckodriver"
                 :load-strategy :none
                 :download-dir download-dir} driver
-      (let [dom  (->> (log-in driver ctx)
-                      api/get-source
-                      cparser/parse)
-            _     (log/info "Throwing out the garbage...")
-            data  (parser/parse dom)
+      (let [data  (-> (->dom driver ctx) parser/parse)
             bills (map #(assoc % :download-dir download-dir) (:bills data))
             data  (assoc data :bills bills)]
         (log/info "Downloading bill files")

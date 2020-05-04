@@ -1,8 +1,5 @@
 (ns delilah.api
-  (:require [clojure.edn :as edn]
-            [clojure.java.io :as io]
-
-            [delilah.dei.core :as dei]))
+  (:require [delilah.dei.core :as dei]))
 
 (defn parse [{:keys [provider] :as ctx}]
   (cond

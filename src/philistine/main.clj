@@ -16,12 +16,16 @@
     (assoc ctx :delilah/services (map #(enrich-provider-cfg % cache-dir) services))))
 
 (defn do-task []
-  (let [{:db/keys [connection] :delilah/keys [services]} (load-config)
+  (let [{:db/keys [connection] :delilah/keys [services] :as ctx} (load-config)
 
-        active-services (filter :active services)]
-    (db/init connection)
+        active-services (filter :active services)
+        db (db/init connection)]
+    (def ctx ctx)
+    (def db db)
     (doseq [provider-cfg active-services]
-      (delilah/parse provider-cfg))))
+      (def provider-cfg provider-cfg)
+      (def res (delilah/parse provider-cfg))
+      (db/store-data! db provider-cfg res))))
 
 (defn -main
   [& args]
