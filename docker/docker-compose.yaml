@@ -1,0 +1,22 @@
+version: "3.7"
+
+services:
+#  ocrmypdf:
+#    container_name: ocrmypdf
+#    build: ocrmypdf
+#    hostname: ocrmypdf
+#    volumes:
+#      - ~/.cache/delilah/downloads:/data
+  postgres:
+    image: postgres
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=delilah
+      - POSTGRES_PASSWORD=delilah-test
+      - POSTGRES_DB=delilah
+    ports:
+      - 5430:5432
+#    volumes:
+#      - ~/.cache/delilah/downloads:/data
+volumes:
+  ocrmypdf:
