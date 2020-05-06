@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS dll_contracts (
 CREATE TABLE IF NOT EXISTS dll_bills (
   id serial PRIMARY KEY,
   contract_id text REFERENCES dll_contracts(contract_id),
+  provider text,
   bill_date date,
   created_at TIMESTAMP DEFAULT NOW(),
   modified_at TIMESTAMP,

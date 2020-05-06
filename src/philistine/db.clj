@@ -15,7 +15,7 @@
 
 (defn store-data! [db
                    {:keys [provider user pass] :as cfg}
-                   {:keys [customer-code property-info] :as data}]
+                   {:keys [customer-code property-info bills] :as data}]
   (insert-account db {:username user
                       :password pass
                       :provider provider
@@ -26,7 +26,11 @@
                        :contract-id (:contract-account property-info)
                        ;:data property-info
                        :data nil})
-  #_(insert-bill db {}))
+  (doseq [{:keys [bill-date] :as bill} bills]
+    (insert-bill db {:contract-id (:contract-account property-info)
+                     :provider provider
+                     :bill-date bill-date
+                     :data nil})))
 
 (comment
   ; Migrations, TODO: replace with migratus

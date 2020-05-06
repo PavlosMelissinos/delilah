@@ -27,13 +27,11 @@ where account-id = :account-id;
 -------------------------------
 
 -- :name insert-bill :! :n
-insert into dll_bills (property, data)
-values (:account_id, :provider, :data)
-values (contract_id ,
-          bill_date date,
-          created_at TIMESTAMP DEFAULT NOW(),
-          modified_at TIMESTAMP,
-          data jsonb, :service)
+insert into dll_bills (contract_id, provider, bill_date, data)
+values (:contract-id,
+        :provider,
+        :bill-date,
+        :data)
 
 -- :name bill-by-date :? :1
 select * from dll_bills
@@ -41,4 +39,4 @@ where bill_date = :bill-date;
 
 -- :name bills-by-property :? :n
 select * from dll_bills
-where property = :property;
+where contract_id = :contract-id;
