@@ -8,15 +8,14 @@ services:
 #    volumes:
 #      - ~/.cache/delilah/downloads:/data
   postgres:
-    image: postgres
+    build: postgres
     container_name: postgres
-    environment:
-      - POSTGRES_USER=delilah
-      - POSTGRES_PASSWORD=delilah-test
-      - POSTGRES_DB=delilah
     ports:
       - 5430:5432
-#    volumes:
+    volumes:
+      - delilah-postgres:/var/lib/postgresql/data
 #      - ~/.cache/delilah/downloads:/data
+
 volumes:
   ocrmypdf:
+  delilah-postgres:

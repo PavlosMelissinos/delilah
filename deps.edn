@@ -17,7 +17,8 @@
             com.mchange/c3p0                       {:mvn/version "0.9.5.4"}
             seancorfield/next.jdbc                 {:mvn/version "1.0.424"}
             com.layerware/hugsql                   {:mvn/version "0.5.1"}
-            com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.1"}}
+            com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.1"}
+            migratus                               {:mvn/version "1.2.8"}}
  :aliases  {:dev        {:extra-paths ["dev"
                                        "test"
                                        "test-resources"]
