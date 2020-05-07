@@ -30,7 +30,3 @@
                      :provider (name provider)
                      :bill-date bill-date
                      :data nil})))
-
-(comment
-  ; Migrations, TODO: replace with migratus
-  "migrations.sql")
