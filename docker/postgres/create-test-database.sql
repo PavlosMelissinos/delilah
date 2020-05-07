@@ -1,4 +1,5 @@
 CREATE DATABASE delilah;
 \connect delilah;
-CREATE USER delilah PASSWORD 'delilah-test';
-GRANT ALL PRIVILEGES ON DATABASE delilah TO delilah;
+CREATE DATABASE delilah_test;
+CREATE USER test_user PASSWORD 'test_pass';
+\connect delilah_test;

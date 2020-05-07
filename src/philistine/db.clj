@@ -14,21 +14,20 @@
 (hugs/def-sqlvec-fns "philistine/queries.sql" {:adapter (next-adapter/hugsql-adapter-next-jdbc)})
 
 (defn store-data! [db
-                   {:keys [provider user pass] :as cfg}
+                   {:keys [provider user] :as cfg}
                    {:keys [customer-code property-info bills] :as data}]
   (insert-account db {:username user
-                      :password pass
-                      :provider provider
+                      :provider (name provider)
                       :account-id customer-code})
   ;TODO: Setup json support -> https://cljdoc.org/d/seancorfield/next.jdbc/1.0.424/doc/getting-started/tips-tricks
   (insert-contract db {:account-id customer-code
-                       :provider provider
+                       :provider (name provider)
                        :contract-id (:contract-account property-info)
                        ;:data property-info
                        :data nil})
   (doseq [{:keys [bill-date] :as bill} bills]
     (insert-bill db {:contract-id (:contract-account property-info)
-                     :provider provider
+                     :provider (name provider)
                      :bill-date bill-date
                      :data nil})))
 

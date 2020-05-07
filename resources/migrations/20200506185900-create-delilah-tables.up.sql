@@ -2,7 +2,6 @@ CREATE TABLE IF NOT EXISTS dll_accounts (
   id serial PRIMARY KEY,
   account_id text unique,
   username text,
-  password text,
   provider text,
   created_at TIMESTAMP DEFAULT NOW(),
   modified_at TIMESTAMP);

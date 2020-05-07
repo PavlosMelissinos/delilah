@@ -5,3 +5,5 @@ projectFilesBackup
 
 .cpcache
 .cache
+resources/secrets.edn
+resources/webdrivers

@@ -9,7 +9,10 @@ services:
 #      - ~/.cache/delilah/downloads:/data
   postgres:
     build: postgres
-    container_name: postgres
+    container_name: delilah-postgres
+    environment:
+      - POSTGRES_USER=philistine
+      - POSTGRES_PASSWORD=philistine-test
     ports:
       - 5430:5432
     volumes:

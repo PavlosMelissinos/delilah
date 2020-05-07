@@ -1,6 +1,6 @@
 -- :name insert-account :! :n
-insert into dll_accounts (username, password, provider, account_id)
-values (:username, :password, :provider, :account-id)
+insert into dll_accounts (username, provider, account_id)
+values (:username, :provider, :account-id)
 ON CONFLICT (account_id)
 DO NOTHING;
 

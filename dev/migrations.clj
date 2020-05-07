@@ -5,8 +5,8 @@
 (def local {:connection-uri "jdbc:postgresql://localhost:5430/delilah"
             :classname      "org.postgresql.Driver"
             :host           "localhost"
-            :user           "delilah"
-            :password       "delilah-test"})
+            :user           "philistine"
+            :password       "philistine-test"})
 
 (defn config [db]
       {:store                :database

@@ -39,21 +39,22 @@
                               (not (.exists (io/file filepath-partial)))))
     filepath))
 
-(defn collect-browser-data [{:keys [cache-dir] :as ctx}]
-  (let [download-dir (str cache-dir "/downloads")]
-    (log/info "Loading web driver...")
-    (api/with-driver
-      :firefox {:headless true
-                :path-driver "resources/geckodriver"
-                :load-strategy :none
-                :download-dir download-dir} driver
-      (let [data  (-> (->dom driver ctx) parser/parse)
-            bills (map #(assoc % :download-dir download-dir) (:bills data))
-            data  (assoc data :bills bills)]
-        (log/info "Downloading bill files")
-        (doseq [bill bills]
-          (download-bill driver bill))
-        data))))
+(defn collect-browser-data [{:keys [download-dir] :as ctx}]
+  (log/info "Loading web driver...")
+  (api/with-driver
+    :firefox {:headless true
+              :path-driver "resources/webdrivers/geckodriver" ;TODO: not working with io/resource, fix
+              :load-strategy :none
+              :download-dir download-dir} driver
+    (def ctx ctx)
+    (let [data  (parser/parse (->dom driver ctx))
+          bills (map #(assoc % :download-dir download-dir) (:bills data))
+          data  (assoc data :bills bills)]
+      (def data data)
+      (log/info "Downloading bill files")
+      (doseq [bill bills]
+        (download-bill driver bill))
+      data)))
 
 (defn do-task [ctx]
   (let [browser-data (collect-browser-data ctx)]
@@ -69,4 +70,4 @@
                cparser/parse))
   (def data (do-task ctx))
   (def driver (api/firefox {:headless true
-                            :path-driver "resources/geckodriver"})))
+                            :path-driver "resources/webdrivers/geckodriver"})))
