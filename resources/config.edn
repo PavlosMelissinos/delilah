@@ -1,0 +1,11 @@
+{:delilah/services  [{:provider :dei
+                      :active   true}]
+ :delilah/cache-dir "~/.cache/delilah"
+ :db/connection     {:dbtype            "postgresql"
+                     :dbname            "delilah"
+                     :user              "philistine"
+                     :password          "philistine-test"
+                     :port              5430
+                     :initial-pool-size 3
+                     :min-pool-size     3
+                     :max-pool-size     15}}
