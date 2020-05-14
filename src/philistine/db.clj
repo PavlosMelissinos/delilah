@@ -1,13 +1,27 @@
 (ns philistine.db
   (:require [clojure.data.json :as json]
-            [hugsql.core :as hugs]
+            [clojure.java.io :as io]
+            [clojure.tools.logging :as log]
+
             [hugsql.adapter.next-jdbc :as next-adapter]
-            [next.jdbc.connection :as connection]
-            [clojure.java.io :as io])
+            [hugsql.core :as hugs]
+            [integrant.core :as ig]
+            [next.jdbc.connection :as connection])
     (:import (com.mchange.v2.c3p0 ComboPooledDataSource)))
 
 (defn init [connection]
   (connection/->pool ComboPooledDataSource connection))
+
+(defmethod ig/init-key :db/connection
+  [_ spec]
+  (log/info :msg "Starting PostgreSQL connection pool..."
+            :db-uri (:connection-uri spec))
+  (connection/->pool ComboPooledDataSource spec))
+
+(defmethod ig/halt-key! :db/connection
+  [_ pool]
+  (log/info :msg "Stopping PostgreSQL connection pool...")
+  (.close pool))
 
 ;;;; Queries
 (hugs/def-db-fns "philistine/queries.sql" {:adapter (next-adapter/hugsql-adapter-next-jdbc)})
