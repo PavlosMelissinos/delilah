@@ -9,9 +9,8 @@
 
 
 (comment
-  (do
-    (def ctx {:provider :dei
-              :cache-dir "/path/to/delilah/cache/dei"
-              :user     ""
-              :pass     ""})
+  (let [ctx {:provider  :dei
+             :cache-dir "/path/to/delilah/cache/dei"
+             :user      ""
+             :pass      ""}]
     (parse ctx)))

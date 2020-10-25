@@ -1,6 +1,7 @@
 (ns delilah.dei.core
   (:require [clojure.java.io :as io]
             [clojure.tools.logging :as log]
+            [clojure.tools.reader.edn :as edn]
 
             [etaoin.api :as api]
             [etaoin.keys :as k]
@@ -14,7 +15,7 @@
   (doto driver
     (api/go "https://www.dei.gr/EBill/Login.aspx")
     (api/wait-visible {:id :txtUserName}))
-  (log/info "Signing into DEI account...")
+  (log/info (format "Signing into DEI account as %s..." user))
   (doto driver
     (api/fill :txtUserName user)
     (api/fill :txtPassword pass k/enter)
@@ -50,24 +51,28 @@
     (let [data  (parser/parse (->dom driver ctx))
           bills (map #(assoc % :download-dir download-dir) (:bills data))
           data  (assoc data :bills bills)]
-      (def data data)
       (log/info "Downloading bill files")
       (doseq [bill bills]
-        (download-bill driver bill))
-      data)))
+        (download-bill driver bill)))))
 
 (defn do-task [ctx]
   (let [browser-data (collect-browser-data ctx)]
+    browser-data
     ;TODO: parse pdfs
-    browser-data))
+  ))
 
 (comment
-  (def ctx (-> (io/resource "config.edn")
-               slurp
-               (edn/read-string)))
+  (def ctx (let [ctx-base (-> (io/resource "config.edn")
+                              slurp
+                              (edn/read-string))
+                 secrets  (-> (io/resource "secrets.edn")
+                              slurp
+                              (edn/read-string)
+                              :dei)]
+             (merge ctx-base secrets)))
+  (def driver (api/firefox {:headless false
+                            :path-driver "resources/webdrivers/geckodriver"}))
   (def dom (-> (log-in driver ctx)
                api/get-source
                cparser/parse))
-  (def data (do-task ctx))
-  (def driver (api/firefox {:headless true
-                            :path-driver "resources/webdrivers/geckodriver"})))
+  (def data (do-task ctx)))
