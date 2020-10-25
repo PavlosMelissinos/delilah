@@ -59,15 +59,24 @@
            (assoc m k (property-info-parse dom v)))
          {})))
 
-(defn bills [dom]
+(defn bill-date [bill]
   (let [formatter "dd.MM.yyyy"]
-    (->> dom
-         (hs/select (:bills selectors))
-         (map #(hash-map :bill-date (-> (get-in % [:attrs :title])
-                                        (clojure.string/split #" ")
-                                        second
-                                        ((partial t/local-date formatter)))
-                         :pdf-url   (str "https://www.dei.gr/EBill/" (get-in % [:attrs :href])))))))
+    (-> (get-in bill [:attrs :title])
+        (clojure.string/split #" ")
+        second
+        ((partial t/local-date formatter)))))
+
+(defn pdf-url [bill]
+  (str "https://www.dei.gr/EBill/" (get-in bill [:attrs :href])))
+
+(defn bill [fragment]
+  {:bill-date (bill-date fragment)
+   :pdf-url   (pdf-url fragment)})
+
+(defn bills [dom]
+  (->> dom
+       (hs/select (:bills selectors))
+       (map bill)))
 
 (defn dest-file [bill customer-code]
   (let [bill-date (->> bill :bill-date format-date)]

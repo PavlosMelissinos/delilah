@@ -40,6 +40,11 @@
                               (not (.exists (io/file filepath-partial)))))
     filepath))
 
+#_(defn download-bill-for-date [driver dom date]
+  (->> dom
+       parser/bills
+       (filter #(= (:bill-date %) (t/local-date date)))))
+
 (defn collect-browser-data [{:keys [download-dir] :as ctx}]
   (log/info "Loading web driver...")
   (api/with-driver
@@ -47,7 +52,6 @@
               :path-driver "resources/webdrivers/geckodriver" ;TODO: not working with io/resource, fix
               :load-strategy :none
               :download-dir download-dir} driver
-    (def ctx ctx)
     (let [data  (parser/parse (->dom driver ctx))
           bills (map #(assoc % :download-dir download-dir) (:bills data))
           data  (assoc data :bills bills)]
@@ -72,7 +76,5 @@
              (merge ctx-base secrets)))
   (def driver (api/firefox {:headless false
                             :path-driver "resources/webdrivers/geckodriver"}))
-  (def dom (-> (log-in driver ctx)
-               api/get-source
-               cparser/parse))
+  (def dom (->dom driver ctx))
   (def data (do-task ctx)))
