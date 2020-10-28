@@ -2,5 +2,4 @@
   (:require [hickory.core :as html]))
 
 (defn parse [doc]
-  (-> (html/parse doc)
-      html/as-hickory))
+  (-> doc html/parse html/as-hickory))

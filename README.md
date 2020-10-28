@@ -1,8 +1,8 @@
-#Delilah
+# Delilah
 
 Status: Early pre-alpha stage
 
-Delilah is an agent that retrieves information about power services and other utilities
+Delilah is an agent that retrieves information about power services
 
 ## Features
 
@@ -10,8 +10,17 @@ Delilah is an agent that retrieves information about power services and other ut
 * [ ] Web driver support
   * [X] Firefox
   * [ ] Chromium
-* [ ] Persistence
-* [ ] UI
 * [ ] Power APIs
   * [X] DEI
-  * [ ] DEDDHE power cuts
+    * [X] log in
+    * [X] get customer info
+    * [X] get property info
+    * [X] get available bills
+    * [X] download bill(s) in pdf form
+    * [ ] parse pdf
+* [ ] HEDNO (ΔΕΔΔΗΕ) power cuts
+    * [X] load page
+    * [X] get outage warnings for prefecture/municipality combination
+    * [X] parse raw text to get useful information such as street names affected by the outage
+    * [ ] filter results by address?
+    * [ ] Tests and specs
