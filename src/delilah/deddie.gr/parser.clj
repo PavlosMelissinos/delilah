@@ -1,11 +1,14 @@
 (ns delilah.deddie.gr.parser
   (:require [clojure.tools.logging :as log]
+            [clojure.walk :as walk]
 
             [etaoin.api :as api]
             [hickory.select :as hs]
             [java-time :as t]
 
-            [delilah.common.parser :as cparser]))
+            [delilah.common.parser :as cparser]
+            [clojure.walk :as walk]
+            [clojure.string :as str]))
 
 (defn filter-power-cuts-by
   ([driver county]
@@ -20,8 +23,10 @@
    (log/info (format "Navigating to outages for %s/%s..." county municipality))
    (api/click driver [{:tag :select :id :PrefectureID} {:tag :option :fn/text county}])
    (when municipality
-     (api/wait-visible driver [{:tag :select :id :MunicipalityID} {:tag :option :fn/text municipality}])
-     (api/click driver [{:tag :select :id :MunicipalityID} {:tag :option :fn/text municipality}]))
+     (let [municipality-elem [{:tag :select :id :MunicipalityID} {:tag :option :fn/text municipality}]]
+       (api/wait-visible driver municipality-elem)
+       (api/click driver municipality-elem)
+       (api/wait-predicate #(api/selected? driver municipality-elem))))
    (log/info "Got raw outage info!")
    driver))
 
@@ -48,13 +53,29 @@
   (log/info (str "Cleaning up table entry " tbl-entry))
   (-> tbl-entry :content first clojure.string/trim))
 
-(defn datetime->iso [datetime]
-  (log/info (format "converting datetime string %s to ISO format" datetime))
-  (-> datetime
+(defn format-gr-time [time]
+  (-> time
       clojure.string/upper-case
       (clojure.string/replace #"ΠΜ" "AM")
-      (clojure.string/replace #"ΜΜ" "PM")
-      (#(t/local-date-time "dd/MM/yyyy h:mm:ss a" %))))
+      (clojure.string/replace #"ΜΜ" "PM")))
+
+(defn str->datetime
+    ([datetime]
+     (str->datetime datetime "d/M/yyyy h:mm:ss a"))
+    ([datetime formatter]
+     (log/info (format "Parsing datetime string %s as %s" datetime formatter))
+     (-> datetime
+         format-gr-time
+         (#(t/local-date-time formatter %)))))
+
+(defn str->time
+  ([time]
+   (str->time time "hh:mm a"))
+  ([time formatter]
+   (log/info (format "Parsing datetime string %s as %s" time formatter))
+   (-> time
+       format-gr-time
+       (#(t/local-time formatter %)))))
 
 (defn deaccent [str]
   "Remove accent from string"
@@ -63,28 +84,43 @@
     (clojure.string/replace normalized #"\p{InCombiningDiacriticalMarks}+" "")))
 
 (defn affected-area [area-text]
-  (let [split-area-text (-> area-text
-                            clojure.string/upper-case
-                            deaccent
-                            (clojure.string/replace "ΟΔΟΣ:" "\n")
-                            (clojure.string/replace "ΑΠΟ:" "\n")
-                            (clojure.string/replace "ΕΩΣ:" "\n")
-                            (clojure.string/replace "ΑΠΟ ΚΑΘΕΤΟ:" "\n")
-                            (clojure.string/replace "ΕΩΣ ΚΑΘΕΤΟ:" "\n")
-                            clojure.string/split-lines)]
-    (->> split-area-text
-         (map clojure.string/trim)
-         (zipmap [:affected-numbers :street :from-street :to-street :start :end]))))
+  (cond
+    (or (str/starts-with? area-text "Μονά")
+        (str/starts-with? area-text "Ζυγά"))
+    (let [split-area-text   (-> (str "affected-numbers\n" area-text)
+                                (clojure.string/replace "οδός:" "\nstreet\n")
+                                (clojure.string/replace "από:" "\nfrom\n")
+                                (clojure.string/replace "έως:" "\nto\n")
+                                (clojure.string/replace "απο κάθετο:" "\nfrom-street\n")
+                                (clojure.string/replace "έως κάθετο:" "\nto-street\n")
+                                clojure.string/split-lines)
+          affected-area-map (->> split-area-text
+                                 (map clojure.string/trim)
+                                 (apply hash-map)
+                                 walk/keywordize-keys)
+          parse-times-fn    (fn [time] (when time (str->datetime time "hh:mm a")))]
+      (->> affected-area-map
+           #_(map #(assoc % :from (parse-times-fn (:from %))))
+           #_(map #(assoc % :to (parse-times-fn (:to %))))))
+
+    :else
+    area-text))
 
 (defn affected-areas [all-areas-text]
   (->> (clojure.string/split all-areas-text #"\n")
        (map affected-area)))
 
+(defn affected-area-test []
+  (let [area-text "Μονά      οδός:ΠΕΡΓΑΜΟΥ απο: ΠΕΡΓΑΜΟΥ ΝΟ 19 έως κάθετο: ΘΡΑΚΗΣ από: 07:30 πμ έως: 02:30 μμ\nΜονά      οδός:ΕΦΕΣΟΥ απο κάθετο: ΚΩΝΣΤΑΝΤΙΝΟΥΠΟΛΩΣ έως κάθετο: ΙΩΝΙΑΣ από: 07:30 πμ έως: 02:30 μμ\nΖυγά      οδός:ΕΦΕΣΟΥ απο κάθετο: ΕΦΕΣΟΥ ΝΟ 26 έως κάθετο: ΘΡΑΚΗΣ από: 07:30 πμ έως: 02:30 μμ\nΜονά      οδός:ΕΦΕΣΟΥ απο κάθετο: ΚΟΥΚΛΟΥΤΖΑ έως: ΕΦΕΣΟΥ ΝΟ 35 από: 07:30 πμ έως: 02:30 μμ\nΜονά/Ζυγά οδός:ΑΙΓΑΙΟΥ απο κάθετο: ΚΩΝΣΤΑΝΤΙΝΟΥΠΟΛΩΣ έως: ΑΙΓΑΙΟΥ ΝΟ 28 από: 07:30 πμ έως: 02:30 μμ\nΜονά      οδός:ΚΩΝΣΤΑΝΤΙΝΟΥΠΟΛΩΣ απο: ΚΩΝΣΤΑΝΤΙΝΟΥΠΟΛΩΣ ΝΟ 7 έως κάθετο: ΕΦΕΣΟΥ από: 07:30 πμ έως: 02:30 μμ\nΜονά/Ζυγά οδός:ΙΩΝΙΑΣ απο κάθετο: ΠΕΡΓΑΜΟΥ έως κάθετο: ΑΙΓΑΙΟΥ από: 07:30 πμ έως: 02:30 μμ\nΜονά      οδός:ΒΟΥΡΝΟΒΑ απο κάθετο: ΑΙΓΑΙΟΥ έως κάθετο: ΘΡΑΚΗΣ από: 07:30 πμ έως: 02:30 μμ"]
+    #_(= nil
+       (affected-area area-text))
+    (affected-areas area-text)))
+
 (defn outage [o]
   (let [outage-map (zipmap [:start :end :municipality :affected-areas :note-id :cause] o)]
     (-> outage-map
-        (update :start datetime->iso)
-        (update :end datetime->iso)
+        (update :start str->datetime)
+        (update :end str->datetime)
         (update :affected-areas affected-areas))))
 
 (defn outages [dom]
@@ -113,7 +149,7 @@
     (-> outages-map
         first
         :affected-areas
-        first))
+        #_first))
 
   (-> area-desc first)
   (map affected-areas area-desc)
