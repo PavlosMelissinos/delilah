@@ -17,10 +17,10 @@ Delilah is an agent that retrieves information about power services
     * [X] get property info
     * [X] get available bills
     * [X] download bill(s) in pdf form
+    * [ ] Tests and specs
     * [ ] parse pdf
 * [ ] HEDNO (ΔΕΔΔΗΕ) power cuts
     * [X] load page
     * [X] get outage warnings for prefecture/municipality combination
     * [X] parse raw text to get useful information such as street names affected by the outage
-    * [ ] filter results by address?
     * [ ] Tests and specs
