@@ -4,6 +4,7 @@
 (defn parse [{:keys [provider] :as ctx}]
   (cond
     (= provider :dei) (dei/do-task ctx)
+    (= provider :deddie) (deddie.gr/do-task ctx)
     :else             (throw
                         (ex-info "Unrecognized provider" {:provider provider}))))
 
