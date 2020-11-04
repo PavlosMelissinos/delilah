@@ -2,7 +2,8 @@
   (:refer-clojure :exclude [update])
   (:require [clojure.tools.namespace.repl :as ns-tools]
             [clojure.test :as test]
-            [clojure.spec.test.alpha :as stest]))
+            [clojure.spec.test.alpha :as stest]
+            [kaocha.repl :as kaocha]))
 
 (def refresh ns-tools/refresh)
 (def refresh-all ns-tools/refresh-all)
@@ -15,4 +16,10 @@
 
 (defn run-all-my-tests []
   (instrument-all)
-  (test/run-all-tests #"^monitor.+|bsq.+$"))
+  (kaocha/run :unit))
+
+(defn run-tests
+  [& args]
+  (if (empty? args)
+    (kaocha/run *ns*)
+    (apply kaocha/run args)))

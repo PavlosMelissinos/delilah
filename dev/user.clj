@@ -19,7 +19,6 @@
 
 
 (defn load-dev []
-  ;;(pyro/swap-stacktrace-engine!)
   (expound-explain-out!)
   (s/check-asserts true)
   (require 'dev)
