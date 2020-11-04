@@ -1,4 +1,4 @@
-(ns delilah.deddie.gr.parser
+(ns delilah.gr.deddie.parser
   (:require [clojure.tools.logging :as log]
             [clojure.walk :as walk]
 

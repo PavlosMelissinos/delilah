@@ -8,7 +8,7 @@
             [java-time :as t]
 
             [delilah.common.parser :as cparser]
-            [delilah.dei.parser :as parser]))
+            [delilah.gr.dei.parser :as parser]))
 
 (defn log-in [driver {:keys [user pass] :as ctx}]
   (log/info "Firing up DEI sign-in page...")
