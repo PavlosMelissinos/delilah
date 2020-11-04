@@ -7,3 +7,4 @@ projectFilesBackup
 .cache
 resources/secrets.edn
 resources/webdrivers
+.#*
