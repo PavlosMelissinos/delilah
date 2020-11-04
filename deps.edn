@@ -16,9 +16,9 @@
                                        "test"
                                        "test-resources"]
                          :extra-deps  {org.clojure/tools.namespace {:mvn/version "0.2.11"}
-                                       lambdaisland/kaocha         {:mvn/version "0.0-418"}
+                                       lambdaisland/kaocha         {:mvn/version "1.0.700"}
                                        rewrite-clj                 {:mvn/version "0.6.1"}}}
             :test       {:extra-paths ["test"
                                        "test-resources"]
-                         :extra-deps  {lambdaisland/kaocha {:mvn/version "0.0-418"}}
+                         :extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.700"}}
                          :main-opts   ["-m" "kaocha.runner" "--config-file" "kaocha.edn"]}}}
