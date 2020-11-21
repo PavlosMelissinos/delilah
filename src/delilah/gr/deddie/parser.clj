@@ -1,80 +1,52 @@
 (ns delilah.gr.deddie.parser
-  (:require [clojure.tools.logging :as log]
+  (:require [clojure.spec.alpha :as s]
+            [clojure.string :as str]
+            [clojure.tools.logging :as log]
             [clojure.walk :as walk]
 
-            [etaoin.api :as api]
             [hickory.select :as hs]
             [java-time :as t]
 
             [delilah.common.parser :as cparser]
-            [clojure.walk :as walk]
-            [clojure.string :as str]))
+            [delilah :as d]))
 
-(defn filter-power-cuts-by
-  ([driver county]
-   (filter-power-cuts-by county nil))
-  ([driver county municipality]
-   (log/info "Firing up deddie.gr outages page...")
-   (doto driver
-     (api/go "https://siteapps.deddie.gr/Outages2Public")
-     (api/wait-visible {:id :PrefectureID})
-     (api/wait-visible {:id :MunicipalityID}))
+;; Time
 
-   (log/info (format "Navigating to outages for %s/%s..." county municipality))
-   (api/click driver [{:tag :select :id :PrefectureID} {:tag :option :fn/text county}])
-   (when municipality
-     (let [municipality-elem [{:tag :select :id :MunicipalityID} {:tag :option :fn/text municipality}]]
-       (api/wait-visible driver municipality-elem)
-       (api/click driver municipality-elem)
-       (api/wait-predicate #(api/selected? driver municipality-elem))))
-   (log/info "Got raw outage info!")
-   driver))
-
-(defn dom [driver {:keys [county municipality] :as ctx}]
-  (-> driver (filter-power-cuts-by county municipality) api/get-source cparser/parse))
-
-;;; Clean up DOM
-
-(defn format-date [date]
-  (let [latin-date (-> date
-                       clojure.string/upper-case
-                       (clojure.string/replace #"ΠΜ" "AM")
-                       (clojure.string/replace #"ΜΜ" "PM"))]
-    (t/format "dd/MM/YYYY h:m:s a" latin-date)
-    #_latin-date))
-
-(def selectors
-    {:outages (hs/descendant
-               (hs/id "tblOutages")
-               (hs/or (hs/tag :thead) (hs/tag :tbody))
-               (hs/or (hs/tag :th) (hs/tag :td)))})
-
-(defn cleanup [tbl-entry]
-  (log/info (str "Cleaning up table entry " tbl-entry))
-  (-> tbl-entry :content first clojure.string/trim))
-
-(defn format-gr-time [time]
+(defn latin-timestr [time]
   (-> time
       clojure.string/upper-case
       (clojure.string/replace #"ΠΜ" "AM")
       (clojure.string/replace #"ΜΜ" "PM")))
+(s/fdef latin-timestr
+  :args (s/cat :time string?)
+  :ret string?)
 
 (defn str->datetime
     ([datetime]
      (str->datetime datetime "d/M/yyyy h:mm:ss a"))
     ([datetime formatter]
-     (log/info (format "Parsing datetime string %s as %s" datetime formatter))
+     (log/info (format "Coercing datetime string %s as %s" datetime formatter))
      (-> datetime
-         format-gr-time
+         latin-timestr
          (#(t/local-date-time formatter %)))))
+(s/fdef str->datetime
+  :args (s/and (s/cat :datetime string?)))
+
+(defn datetime->str
+  ([datetime]
+   (datetime->str datetime "yyyy/M/dd hh:mm:ss"))
+  ([datetime formatter]
+   (t/format formatter datetime)))
+(s/fdef datetime->str
+  :args (s/and (s/cat :datetime t/local-date-time?)))
 
 (defn str->time
   ([time]
    (str->time time "hh:mm a"))
   ([time formatter]
-   (log/info (format "Parsing datetime string %s as %s" time formatter))
+   (log/info (format "Coercing time string %s as %s" time formatter))
    (-> time
-       format-gr-time
+       latin-timestr
        (#(t/local-time formatter %)))))
 
 (defn deaccent [str]
@@ -83,7 +55,50 @@
   (let [normalized (java.text.Normalizer/normalize str java.text.Normalizer$Form/NFD)]
     (clojure.string/replace normalized #"\p{InCombiningDiacriticalMarks}+" "")))
 
+;;; Clean up DOM
+
+(def selectors
+  {:prefecture     (hs/descendant
+                    (hs/id "PrefectureID")
+                    (hs/and (hs/tag :option) (hs/attr :selected)))
+   :prefectures    (hs/descendant
+                    (hs/id "PrefectureID")
+                    (hs/tag :option))
+   :municipality   (hs/descendant
+                    (hs/id "MunicipalityID")
+                    (hs/and (hs/tag :option) (hs/attr :selected)))
+   :municipalities (hs/descendant
+                    (hs/id "MunicipalityID")
+                    (hs/tag :option))
+   :outages        (hs/descendant
+                    (hs/id "tblOutages")
+                    (hs/or (hs/tag :thead) (hs/tag :tbody))
+                    (hs/or (hs/tag :th) (hs/tag :td)))})
+
+(defn prefecture [dom]
+  (->> dom
+       (hs/select (:prefecture selectors))))
+
+(defn prefectures [dom]
+  (->> dom
+       (hs/select (:prefectures selectors))
+       (map #(hash-map :deddie.prefecture/name (-> % :content first)
+                       :deddie.prefecture/id   (-> % :attrs :value)))))
+
+(defn municipalities [dom prefecture-id]
+  (->> dom
+       (hs/select (:municipalities selectors))
+       (map #(hash-map :deddie.prefecture/id     prefecture-id
+                       :deddie.municipality/name (-> % :content first)
+                       :deddie.municipality/id   (-> % :attrs :value)))))
+
+(defn cleanup [{:keys [content] :as tbl-entry}]
+  (def tbl-entry tbl-entry)
+  (log/info (str "Cleaning up table entry " tbl-entry))
+  (when content (-> content first clojure.string/trim)))
+
 (defn affected-area [area-text]
+  (log/info "Parsing outage data for affected area...")
   (cond
     (or (str/starts-with? area-text "Μονά")
         (str/starts-with? area-text "Ζυγά"))
@@ -98,10 +113,10 @@
                                  (map clojure.string/trim)
                                  (apply hash-map)
                                  walk/keywordize-keys)
-          parse-times-fn    (fn [time] (when time (str->datetime time "hh:mm a")))]
-      (->> affected-area-map
-           #_(map #(assoc % :from (parse-times-fn (:from %))))
-           #_(map #(assoc % :to (parse-times-fn (:to %))))))
+          parse-times-fn    (fn [time] (when time (str->time time "hh:mm a")))]
+      (-> affected-area-map
+          (update :from #(parse-times-fn %))
+          (update :to #(parse-times-fn %))))
 
     :else
     area-text))
@@ -110,13 +125,8 @@
   (->> (clojure.string/split all-areas-text #"\n")
        (map affected-area)))
 
-(defn affected-area-test []
-  (let [area-text "Μονά      οδός:ΠΕΡΓΑΜΟΥ απο: ΠΕΡΓΑΜΟΥ ΝΟ 19 έως κάθετο: ΘΡΑΚΗΣ από: 07:30 πμ έως: 02:30 μμ\nΜονά      οδός:ΕΦΕΣΟΥ απο κάθετο: ΚΩΝΣΤΑΝΤΙΝΟΥΠΟΛΩΣ έως κάθετο: ΙΩΝΙΑΣ από: 07:30 πμ έως: 02:30 μμ\nΖυγά      οδός:ΕΦΕΣΟΥ απο κάθετο: ΕΦΕΣΟΥ ΝΟ 26 έως κάθετο: ΘΡΑΚΗΣ από: 07:30 πμ έως: 02:30 μμ\nΜονά      οδός:ΕΦΕΣΟΥ απο κάθετο: ΚΟΥΚΛΟΥΤΖΑ έως: ΕΦΕΣΟΥ ΝΟ 35 από: 07:30 πμ έως: 02:30 μμ\nΜονά/Ζυγά οδός:ΑΙΓΑΙΟΥ απο κάθετο: ΚΩΝΣΤΑΝΤΙΝΟΥΠΟΛΩΣ έως: ΑΙΓΑΙΟΥ ΝΟ 28 από: 07:30 πμ έως: 02:30 μμ\nΜονά      οδός:ΚΩΝΣΤΑΝΤΙΝΟΥΠΟΛΩΣ απο: ΚΩΝΣΤΑΝΤΙΝΟΥΠΟΛΩΣ ΝΟ 7 έως κάθετο: ΕΦΕΣΟΥ από: 07:30 πμ έως: 02:30 μμ\nΜονά/Ζυγά οδός:ΙΩΝΙΑΣ απο κάθετο: ΠΕΡΓΑΜΟΥ έως κάθετο: ΑΙΓΑΙΟΥ από: 07:30 πμ έως: 02:30 μμ\nΜονά      οδός:ΒΟΥΡΝΟΒΑ απο κάθετο: ΑΙΓΑΙΟΥ έως κάθετο: ΘΡΑΚΗΣ από: 07:30 πμ έως: 02:30 μμ"]
-    #_(= nil
-       (affected-area area-text))
-    (affected-areas area-text)))
-
 (defn outage [o]
+  (log/info (str "Enriching outage reports"))
   (let [outage-map (zipmap [:start :end :municipality :affected-areas :note-id :cause] o)]
     (-> outage-map
         (update :start str->datetime)
@@ -134,24 +144,3 @@
                            (partition (count labels)))]
     (log/info (str "Outage entries: " (vector rows)))
     (map outage rows)))
-
-
-(comment
-  (def driver (api/firefox {:headless    false
-                            :path-driver "resources/webdrivers/geckodriver"}))
-
-  (def outages-map
-    (let [ctx {:county "ΑΤΤΙΚΗΣ" :municipality "Ν.ΣΜΥΡΝΗΣ"}]
-      (-> (dom driver ctx)
-          outages)))
-
-  (def area-desc
-    (-> outages-map
-        first
-        :affected-areas
-        #_first))
-
-  (-> area-desc first)
-  (map affected-areas area-desc)
-
-  (api/quit driver))
