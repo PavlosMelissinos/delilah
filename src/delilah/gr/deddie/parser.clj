@@ -87,20 +87,19 @@
       first
       (dissoc :deddie.prefecture/selected)))
 
-(defn municipalities [dom prefecture-id]
+(defn municipalities [dom]
   (->> dom
        (hs/select (:municipalities selectors))
-       (map #(hash-map :deddie.prefecture/id     prefecture-id
-                       :deddie.municipality/name (-> % :content first)
-                       :deddie.municipality/id   (-> % :attrs :value)))))
+       (map #(hash-map :deddie.municipality/name   (-> % :content first)
+                       :deddie.municipality/id     (-> % :attrs :value)
+                       :deddie.municipality/selected (-> % :attrs :selected)))))
 
 (defn municipality [dom]
-  (-> (filter :deddie.prefecture/selected (prefectures dom))
+  (-> (filter :deddie.municipality/selected (municipalities dom))
       first
-      (dissoc :deddie.prefecture/selected)))
+      (dissoc :deddie.municipality/selected)))
 
 (defn cleanup [{:keys [content] :as tbl-entry}]
-  (def tbl-entry tbl-entry)
   (log/info (str "Cleaning up table entry " tbl-entry))
   (when content (-> content first clojure.string/trim)))
 

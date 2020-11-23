@@ -6,52 +6,83 @@
 
 (defn prefectures []
   (-> "https://siteapps.deddie.gr/Outages2Public"
-      slurp
-      cparser/parse
-      p/prefectures))
+      (slurp)
+      (cparser/parse)
+      (p/prefectures)))
 
-(defn municipalities [prefecture-id]
-  (-> (str "https://siteapps.deddie.gr/Outages2Public?PrefectureID=" prefecture-id)
-      slurp
-      cparser/parse
-      (p/municipalities prefecture-id)))
+(defn prefecture-name->id [name]
+  (->> (prefectures)
+       (filter #(= (:deddie.prefecture/name %) name))
+       (first)
+       (:deddie.prefecture/id)))
+
+(defn municipalities [prefecture]
+  (let [prefecture-id (if (number? prefecture)
+                           prefecture
+                           (prefecture-name->id prefecture))]
+    (map #(assoc % :deddie.prefecture/id prefecture-id)
+         (-> (str "https://siteapps.deddie.gr/Outages2Public?PrefectureID=" prefecture-id)
+             (slurp)
+             (cparser/parse)
+             (p/municipalities)))))
+
+(defn municipality-name->id [name prefecture-id]
+  (->> (municipalities prefecture-id)
+       (filter #(= (:deddie.municipality/name %) name))
+       (first)
+       (:deddie.municipality/id)))
+
+(defn all-municipalities []
+  (let [prefectures (prefectures)
+        mapper      (zipmap (map :deddie.prefecture/id prefectures)
+                            (map :deddie.prefecture/name prefectures))]
+    (->> (map :deddie.prefecture/id prefectures)
+         (mapcat municipalities)
+         (map #(assoc % :deddie.prefecture/name (mapper (:deddie.prefecture/id %)))))))
 
 (defn dom
-  ([prefecture-id]
-   (dom prefecture-id nil))
-  ([prefecture-id municipality-id]
-   (-> (format "https://siteapps.deddie.gr/Outages2Public?PrefectureID=%s&MunicipalityID=%s" prefecture-id municipality-id)
-       slurp
-       cparser/parse)))
+  ([prefecture]
+   (dom prefecture nil))
+  ([prefecture municipality]
+   (let [prefecture-id   (if (number? prefecture)
+                           prefecture
+                           (-> prefecture prefecture-name->id Integer/parseInt))
+         municipality-id (if (or (number? municipality) (nil? municipality))
+                           municipality
+                           (municipality-name->id municipality prefecture-id))]
+     (-> (format "https://siteapps.deddie.gr/Outages2Public?PrefectureID=%s&MunicipalityID=%s" prefecture-id municipality-id)
+         (slurp)
+         (cparser/parse)))))
 
-(defn outages [dom]
-  (p/outages dom))
+(defn outages
+  ([prefecture]
+   (outages prefecture nil))
+  ([prefecture municipality]
+   (p/outages (dom prefecture municipality))))
+
 
 (comment
   (def active-prefecture (-> 10 dom p/prefecture))
+  (def active-prefecture (-> "ΑΤΤΙΚΗΣ" dom p/prefecture))
 
   (def all-prefectures (prefectures))
 
-  (def active-municipality (p/municipality (dom 10 112)))
+  (def active-municipality (p/municipality (dom 10 "ΑΘΗΝΑΙΩΝ")))
+  (def active-municipality (p/municipality (dom "ΘΕΣΣΑΛΟΝΙΚΗΣ" "ΘΕΣΣΑΛΟΝΙΚΗΣ")))
 
-  (def all-municipalities
-    (let [prefectures (prefectures)
-          mapper      (zipmap (map :prefecture/id prefectures)
-                              (map :prefecture/name prefectures))]
-      (->> (mapcat #(municipalities (:prefecture/id %)) prefectures)
-           (map #(assoc % :prefecture/name (mapper (:prefecture/id %)))))))
+  (def municipalities (municipalities 23))
+  (def municipalities (municipalities "ΘΕΣΣΑΛΟΝΙΚΗΣ"))
 
-  ; Get outages for the municipality of Athens
-  (def outages-map (p/outages (dom 10 112)))
+  (def all-municipalities (all-municipalities))
 
-  ; Get outages for the entire prefecture of Thessaloniki
-  (def outages-map (-> 23 dom p/outages))
+  ; Pending outages within the municipality of Athens
+  (def outages-map (outages 10 112))
+  (def outages-map (outages "ΑΤΤΙΚΗΣ" "ΑΘΗΝΑΙΩΝ"))
 
-  (def area-desc
-    (-> outages-map
-        first
-        :affected-areas
-        #_first))
+  ; Pending outages within the entire prefecture of Thessaloniki
+  (def outages-map (outages 23))
+  (def outages-map (outages "ΘΕΣΣΑΛΟΝΙΚΗΣ"))
 
-  (-> area-desc first)
-  (map affected-areas area-desc))
+  ; Pending outages within the municipality of Thessaloniki
+  (def outages-map (outages 23 454))
+  (def outages-map (outages "ΘΕΣΣΑΛΟΝΙΚΗΣ" "ΘΕΣΣΑΛΟΝΙΚΗΣ")))
