@@ -24,10 +24,15 @@
        slurp
        cparser/parse)))
 
+(defn outages [dom]
+  (p/outages dom))
+
 (comment
+  (def active-prefecture (-> 10 dom p/prefecture))
+
   (def all-prefectures (prefectures))
 
-  (def active-prefecture (-> 10 dom p/prefecture))
+  (def active-municipality (p/municipality (dom 10 112)))
 
   (def all-municipalities
     (let [prefectures (prefectures)
@@ -37,7 +42,7 @@
            (map #(assoc % :prefecture/name (mapper (:prefecture/id %)))))))
 
   ; Get outages for the municipality of Athens
-  (def outages-map (-> (dom 10 112) p/outages))
+  (def outages-map (p/outages (dom 10 112)))
 
   ; Get outages for the entire prefecture of Thessaloniki
   (def outages-map (-> 23 dom p/outages))

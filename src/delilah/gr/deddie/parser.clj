@@ -75,15 +75,17 @@
                     (hs/or (hs/tag :thead) (hs/tag :tbody))
                     (hs/or (hs/tag :th) (hs/tag :td)))})
 
-(defn prefecture [dom]
-  (->> dom
-       (hs/select (:prefecture selectors))))
-
 (defn prefectures [dom]
   (->> dom
        (hs/select (:prefectures selectors))
-       (map #(hash-map :deddie.prefecture/name (-> % :content first)
-                       :deddie.prefecture/id   (-> % :attrs :value)))))
+       (map #(hash-map :deddie.prefecture/name     (-> % :content first)
+                       :deddie.prefecture/id       (-> % :attrs :value)
+                       :deddie.prefecture/selected (-> % :attrs :selected)))))
+
+(defn prefecture [dom]
+  (-> (filter :deddie.prefecture/selected (prefectures dom))
+      first
+      (dissoc :deddie.prefecture/selected)))
 
 (defn municipalities [dom prefecture-id]
   (->> dom
@@ -92,29 +94,41 @@
                        :deddie.municipality/name (-> % :content first)
                        :deddie.municipality/id   (-> % :attrs :value)))))
 
+(defn municipality [dom]
+  (-> (filter :deddie.prefecture/selected (prefectures dom))
+      first
+      (dissoc :deddie.prefecture/selected)))
+
 (defn cleanup [{:keys [content] :as tbl-entry}]
   (def tbl-entry tbl-entry)
   (log/info (str "Cleaning up table entry " tbl-entry))
   (when content (-> content first clojure.string/trim)))
+
+
+(defn- split-area-text [area-text]
+  (-> (str "affected-numbers\n" area-text)
+      (clojure.string/replace "οδός:" "\nstreet\n")
+      (clojure.string/replace "από:" "\nfrom\n")
+      (clojure.string/replace "έως:" "\nto\n")
+      (clojure.string/replace "απο κάθετο:" "\nfrom-street\n")
+      (clojure.string/replace "έως κάθετο:" "\nto-street\n")
+      (clojure.string/split-lines)
+      ((partial map clojure.string/trim))))
+
+(defn- parse-area-text [area-text]
+  (->> area-text
+       split-area-text
+       (apply hash-map)
+       walk/keywordize-keys))
 
 (defn affected-area [area-text]
   (log/info "Parsing outage data for affected area...")
   (cond
     (or (str/starts-with? area-text "Μονά")
         (str/starts-with? area-text "Ζυγά"))
-    (let [split-area-text   (-> (str "affected-numbers\n" area-text)
-                                (clojure.string/replace "οδός:" "\nstreet\n")
-                                (clojure.string/replace "από:" "\nfrom\n")
-                                (clojure.string/replace "έως:" "\nto\n")
-                                (clojure.string/replace "απο κάθετο:" "\nfrom-street\n")
-                                (clojure.string/replace "έως κάθετο:" "\nto-street\n")
-                                clojure.string/split-lines)
-          affected-area-map (->> split-area-text
-                                 (map clojure.string/trim)
-                                 (apply hash-map)
-                                 walk/keywordize-keys)
-          parse-times-fn    (fn [time] (when time (str->time time "hh:mm a")))]
-      (-> affected-area-map
+    (let [parse-times-fn (fn [time] (when time (str->time time "hh:mm a")))]
+      (-> area-text
+          parse-area-text
           (update :from #(parse-times-fn %))
           (update :to #(parse-times-fn %))))
 
@@ -131,6 +145,7 @@
     (-> outage-map
         (update :start str->datetime)
         (update :end str->datetime)
+        (assoc :affected-areas-raw (:affected-areas outage-map))
         (update :affected-areas affected-areas))))
 
 (defn outages [dom]
