@@ -131,7 +131,9 @@ Here's another example of the advanced parser for Athens
 ##### Miscellaneous
 
 Get outages by prefecture/municipality ID: `(deddie/outages 10 112)` (same as `(deddie/outages "ΑΤΤΙΚΗΣ" "ΑΘΗΝΑΙΩΝ")`)
+
 Get the id of a prefecture/municipality by name: `deddie/prefecture-name->id "ΘΕΣΣΑΛΟΝΙΚΗΣ")` or `(deddie/municipality-name->id "ΑΤΤΙΚΗΣ" "ΠΕΡΙΣΤΕΡΙΟΥ")`, etc
+
 Get all of the available prefectures/municipalities: `(deddie/prefectures)`, `(deddie/all-municipalities)`, `(deddie/municipalities 10)`
 
 Check the [API source code](src/delilah/gr/deddie/api.clj) for some more examples
