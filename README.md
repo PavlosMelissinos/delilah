@@ -15,10 +15,6 @@ Add the following entry to your deps.edn file
 
 ## Usage
 
-### DEI
-
-WIP - still lacking basic features
-
 ### DEDDIE
 
 Require deddie API
@@ -137,7 +133,11 @@ Get the id of a prefecture/municipality by name: `deddie/prefecture-name->id "Θ
 Get all of the available prefectures/municipalities: `(deddie/prefectures)`, `(deddie/all-municipalities)`, `(deddie/municipalities 10)`
 
 Check the [API source code](src/delilah/gr/deddie/api.clj) for some more examples
-```
+
+
+### DEI
+
+WIP - still lacking basic features
 
 ## Features
 
