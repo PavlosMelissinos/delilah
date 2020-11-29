@@ -16,7 +16,8 @@
   (->> (prefectures)
        (filter #(= (:deddie.prefecture/name %) name))
        (first)
-       (:deddie.prefecture/id)))
+       (:deddie.prefecture/id)
+       Integer/parseInt))
 
 (defn municipalities [prefecture]
   (let [prefecture-id (if (number? prefecture)
@@ -32,7 +33,8 @@
   (->> (municipalities prefecture-id)
        (filter #(= (:deddie.municipality/name %) name))
        (first)
-       (:deddie.municipality/id)))
+       (:deddie.municipality/id)
+       Integer/parseInt))
 
 (defn all-municipalities []
   (let [prefectures (prefectures)
@@ -50,7 +52,7 @@
   ([prefecture municipality page]
    (let [prefecture-id   (if (number? prefecture)
                            prefecture
-                           (-> prefecture prefecture-name->id Integer/parseInt))
+                           (-> prefecture prefecture-name->id))
          municipality-id (if (or (number? municipality) (nil? municipality))
                            municipality
                            (municipality-name->id municipality prefecture-id))]
