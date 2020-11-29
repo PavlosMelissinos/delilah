@@ -3,9 +3,11 @@
             [delilah.gr.deddie.parser :as p]
             [delilah.gr.deddie.scraper :as s]))
 
+(def endpoint "https://siteapps.deddie.gr/Outages2Public")
+(def partial-endpoint "https://siteapps.deddie.gr/Outages2Public/Home/OutagesPartial")
 
 (defn prefectures []
-  (-> "https://siteapps.deddie.gr/Outages2Public"
+  (-> endpoint
       (slurp)
       (cparser/parse)
       (s/prefectures)))
@@ -21,7 +23,7 @@
                            prefecture
                            (prefecture-name->id prefecture))]
     (map #(assoc % :deddie.prefecture/id prefecture-id)
-         (-> (str "https://siteapps.deddie.gr/Outages2Public?PrefectureID=" prefecture-id)
+         (-> (str endpoint "?PrefectureID=" prefecture-id)
              (slurp)
              (cparser/parse)
              (s/municipalities)))))
@@ -52,7 +54,7 @@
          municipality-id (if (or (number? municipality) (nil? municipality))
                            municipality
                            (municipality-name->id municipality prefecture-id))]
-     (-> (format "https://siteapps.deddie.gr/Outages2Public?PrefectureID=%s&MunicipalityID=%s" prefecture-id municipality-id)
+     (-> (format "%s?PrefectureID=%s&MunicipalityID=%s" endpoint prefecture-id municipality-id)
          (slurp)
          (cparser/parse)))))
 
