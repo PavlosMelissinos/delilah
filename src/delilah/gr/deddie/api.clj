@@ -1,7 +1,9 @@
 (ns delilah.gr.deddie.api
-  (:require [delilah.common.parser :as cparser]
-            [delilah.gr.deddie.parser :as p]
-            [delilah.gr.deddie.scraper :as s]))
+  (:require [clojure.spec.alpha :as s]
+            [delilah.common.parser :as cparser]
+            [delilah.gr.deddie :as deddie]
+            [delilah.gr.deddie.parser :as parser]
+            [delilah.gr.deddie.scraper :as scraper]))
 
 (def endpoint "https://siteapps.deddie.gr/Outages2Public")
 (def partial-endpoint "https://siteapps.deddie.gr/Outages2Public/Home/OutagesPartial")
@@ -10,39 +12,55 @@
   (-> endpoint
       (slurp)
       (cparser/parse)
-      (s/prefectures)))
+      (scraper/prefectures)))
+(s/fdef prefectures
+  :ret (s/coll-of :deddie/prefecture))
 
 (defn prefecture-name->id [name]
   (->> (prefectures)
        (filter #(= (:deddie.prefecture/name %) name))
        (first)
        (:deddie.prefecture/id)
-       Integer/parseInt))
+       (#(if (empty? %) 0 (Integer/parseInt %)))))
+(s/fdef prefecture-name->id
+  :args (s/cat :name :deddie.prefecture/name)
+  :ret :deddie.prefecture/id)
 
 (defn municipalities [prefecture]
-  (let [prefecture-id (if (number? prefecture)
+  (let [prefecture-id  (if (number? prefecture)
                            prefecture
-                           (prefecture-name->id prefecture))]
-    (map #(assoc % :deddie.prefecture/id prefecture-id)
-         (-> (str endpoint "?PrefectureID=" prefecture-id)
-             (slurp)
-             (cparser/parse)
-             (s/municipalities)))))
+                           (prefecture-name->id prefecture))
+        municipalities (-> (str endpoint "?PrefectureID=" prefecture-id)
+                           (slurp)
+                           (cparser/parse)
+                           (scraper/municipalities))]
+    (map #(assoc % :deddie.prefecture/id prefecture-id) municipalities)))
+(s/fdef municipalities
+  :args (s/cat :prefecture #(or (string? %) (integer? %)))
+  :ret (s/coll-of :deddie/municipality))
+
 
 (defn municipality-name->id [name prefecture-id]
   (->> (municipalities prefecture-id)
        (filter #(= (:deddie.municipality/name %) name))
        (first)
        (:deddie.municipality/id)
-       Integer/parseInt))
+       (#(if (empty? %) 0 (Integer/parseInt %)))))
+(s/fdef municipality-name->id
+  :args (s/cat :name :deddie.municipality/name
+               :prefecture-id :deddie.prefecture/id)
+  :ret :deddie.prefecture/id)
+
 
 (defn all-municipalities []
-  (let [prefectures (prefectures)
-        mapper      (zipmap (map :deddie.prefecture/id prefectures)
-                            (map :deddie.prefecture/name prefectures))]
-    (->> (map :deddie.prefecture/id prefectures)
+  (let [prefs  (prefectures)
+        mapper (zipmap (map :deddie.prefecture/id prefs)
+                       (map :deddie.prefecture/name prefs))]
+    (->> (map :deddie.prefecture/id prefs)
          (mapcat municipalities)
          (map #(assoc % :deddie.prefecture/name (mapper (:deddie.prefecture/id %)))))))
+(s/fdef all-municipalities
+  :ret (s/coll-of :deddie/municipality))
 
 (defn dom
   ([prefecture]
@@ -52,7 +70,7 @@
   ([prefecture municipality page]
    (let [prefecture-id   (if (number? prefecture)
                            prefecture
-                           (-> prefecture prefecture-name->id))
+                           (prefecture-name->id prefecture))
          municipality-id (if (or (number? municipality) (nil? municipality))
                            municipality
                            (municipality-name->id municipality prefecture-id))]
@@ -68,14 +86,14 @@
 
 
 (comment
-  (def active-prefecture (-> 10 dom p/prefecture))
-  (def active-prefecture (-> "ΑΤΤΙΚΗΣ" dom p/prefecture))
+  (def active-prefecture (-> (dom 10) scraper/prefecture))
+  (def active-prefecture (-> (dom "ΑΤΤΙΚΗΣ") scraper/prefecture))
 
   (def all-prefectures (prefectures))
 
-  (def active-municipality (s/municipality (dom 10)))
-  (def active-municipality (s/municipality (dom 10 "ΑΘΗΝΑΙΩΝ")))
-  (def active-municipality (s/municipality (dom "ΘΕΣΣΑΛΟΝΙΚΗΣ" "ΘΕΣΣΑΛΟΝΙΚΗΣ")))
+  (def active-municipality (scraper/municipality (dom 10)))
+  (def active-municipality (scraper/municipality (dom 10 "ΑΘΗΝΑΙΩΝ")))
+  (def active-municipality (scraper/municipality (dom "ΘΕΣΣΑΛΟΝΙΚΗΣ" "ΘΕΣΣΑΛΟΝΙΚΗΣ")))
 
   (def municipalities (municipalities 23))
   (def municipalities (municipalities "ΘΕΣΣΑΛΟΝΙΚΗΣ"))
