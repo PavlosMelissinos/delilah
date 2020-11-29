@@ -1,14 +1,14 @@
 (ns delilah.gr.deddie.api
-  (:require [hickory.select :as hs]
+  (:require [delilah.common.parser :as cparser]
+            [delilah.gr.deddie.parser :as p]
+            [delilah.gr.deddie.scraper :as s]))
 
-            [delilah.common.parser :as cparser]
-            [delilah.gr.deddie.parser :as p]))
 
 (defn prefectures []
   (-> "https://siteapps.deddie.gr/Outages2Public"
       (slurp)
       (cparser/parse)
-      (p/prefectures)))
+      (s/prefectures)))
 
 (defn prefecture-name->id [name]
   (->> (prefectures)
@@ -24,7 +24,7 @@
          (-> (str "https://siteapps.deddie.gr/Outages2Public?PrefectureID=" prefecture-id)
              (slurp)
              (cparser/parse)
-             (p/municipalities)))))
+             (s/municipalities)))))
 
 (defn municipality-name->id [name prefecture-id]
   (->> (municipalities prefecture-id)
@@ -42,8 +42,10 @@
 
 (defn dom
   ([prefecture]
-   (dom prefecture nil))
+   (dom prefecture nil 1))
   ([prefecture municipality]
+   (dom prefecture municipality 1))
+  ([prefecture municipality page]
    (let [prefecture-id   (if (number? prefecture)
                            prefecture
                            (-> prefecture prefecture-name->id Integer/parseInt))
@@ -58,7 +60,7 @@
   ([prefecture]
    (outages prefecture nil))
   ([prefecture municipality]
-   (p/outages (dom prefecture municipality))))
+   (s/outages (dom prefecture municipality))))
 
 
 (comment
@@ -67,8 +69,9 @@
 
   (def all-prefectures (prefectures))
 
-  (def active-municipality (p/municipality (dom 10 "ΑΘΗΝΑΙΩΝ")))
-  (def active-municipality (p/municipality (dom "ΘΕΣΣΑΛΟΝΙΚΗΣ" "ΘΕΣΣΑΛΟΝΙΚΗΣ")))
+  (def active-municipality (s/municipality (dom 10)))
+  (def active-municipality (s/municipality (dom 10 "ΑΘΗΝΑΙΩΝ")))
+  (def active-municipality (s/municipality (dom "ΘΕΣΣΑΛΟΝΙΚΗΣ" "ΘΕΣΣΑΛΟΝΙΚΗΣ")))
 
   (def municipalities (municipalities 23))
   (def municipalities (municipalities "ΘΕΣΣΑΛΟΝΙΚΗΣ"))

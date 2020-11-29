@@ -4,7 +4,6 @@
             [clojure.tools.logging :as log]
             [clojure.walk :as walk]
 
-            [hickory.select :as hs]
             [java-time :as t]
 
             [delilah.common.parser :as cparser]
@@ -55,50 +54,6 @@
   (let [normalized (java.text.Normalizer/normalize str java.text.Normalizer$Form/NFD)]
     (clojure.string/replace normalized #"\p{InCombiningDiacriticalMarks}+" "")))
 
-;;; Clean up DOM
-
-(def selectors
-  {:prefecture     (hs/descendant
-                    (hs/id "PrefectureID")
-                    (hs/and (hs/tag :option) (hs/attr :selected)))
-   :prefectures    (hs/descendant
-                    (hs/id "PrefectureID")
-                    (hs/tag :option))
-   :municipality   (hs/descendant
-                    (hs/id "MunicipalityID")
-                    (hs/and (hs/tag :option) (hs/attr :selected)))
-   :municipalities (hs/descendant
-                    (hs/id "MunicipalityID")
-                    (hs/tag :option))
-   :outages        (hs/descendant
-                    (hs/id "tblOutages")
-                    (hs/or (hs/tag :thead) (hs/tag :tbody))
-                    (hs/or (hs/tag :th) (hs/tag :td)))})
-
-(defn prefectures [dom]
-  (->> dom
-       (hs/select (:prefectures selectors))
-       (map #(hash-map :deddie.prefecture/name     (-> % :content first)
-                       :deddie.prefecture/id       (-> % :attrs :value)
-                       :deddie.prefecture/selected (-> % :attrs :selected)))))
-
-(defn prefecture [dom]
-  (-> (filter :deddie.prefecture/selected (prefectures dom))
-      first
-      (dissoc :deddie.prefecture/selected)))
-
-(defn municipalities [dom]
-  (->> dom
-       (hs/select (:municipalities selectors))
-       (map #(hash-map :deddie.municipality/name   (-> % :content first)
-                       :deddie.municipality/id     (-> % :attrs :value)
-                       :deddie.municipality/selected (-> % :attrs :selected)))))
-
-(defn municipality [dom]
-  (-> (filter :deddie.municipality/selected (municipalities dom))
-      first
-      (dissoc :deddie.municipality/selected)))
-
 (defn cleanup [{:keys [content] :as tbl-entry}]
   (log/info (str "Cleaning up table entry " tbl-entry))
   (when content (-> content first clojure.string/trim)))
@@ -146,15 +101,3 @@
         (update :end str->datetime)
         (assoc :affected-areas-raw (:affected-areas outage-map))
         (update :affected-areas affected-areas))))
-
-(defn outages [dom]
-  (let [outages-table (hs/select (:outages selectors) dom)
-        labels        (->> outages-table
-                           (filter #(= (:tag %) :th))
-                           (map cleanup))
-        rows          (->> outages-table
-                           (filter #(= (:tag %) :td))
-                           (map cleanup)
-                           (partition (count labels)))]
-    (log/info (str "Outage entries: " (vector rows)))
-    (map outage rows)))
