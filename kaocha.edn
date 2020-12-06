@@ -7,7 +7,7 @@
  :kaocha.plugin.profiling/profiling? true
  :kaocha.plugin.profiling/count      5
  :kaocha/reporter                    [kaocha.report/documentation]
- :kaocha.hooks/post-load             [monitor.kaocha/post-load-hook]
+ :kaocha.hooks/post-load             [delilah.kaocha/post-load-hook]
  :plugins                            [:kaocha.plugin/hooks
                                       :kaocha.plugin/notifier
                                       :kaocha.plugin/profiling
