@@ -4,10 +4,32 @@
             [clojure.tools.logging :as log]
             [clojure.walk :as walk]
 
+            [clj-http.client :as cl]
             [java-time :as t]
 
             [delilah.common.parser :as cparser]
-            [delilah :as d]))
+            [delilah :as d])
+  (:import [org.eclipse.jetty.util UrlEncoded MultiMap]))
+
+(defn query-map [query]
+  (->> query
+       UrlEncoded.
+       (into {})
+       walk/keywordize-keys))
+(s/fdef query-map
+  :args (s/cat :query string?)
+  :ret  map?)
+
+(defn page-num [url]
+  (-> url
+      cl/parse-url
+      :query-string
+      query-map
+      :page
+      first
+      Integer/parseInt))
+(s/fdef page-num
+  :args (s/cat :url (s/and string?)))
 
 ;; Time
 

@@ -12,6 +12,19 @@
              slurp
              edn/read-string))
 
+(deftest test-query-map
+  (is (= {:a ["1"]
+          :b ["2"]}
+         (sut/query-map "a=1&b=2")))
+
+  (is (= {:non-query-form [""]}
+         (sut/query-map "non-query-form"))))
+
+
+(deftest test-page-num
+  (is (= 2
+         (sut/page-num "http://doma.in/api?arg1=a&page=2"))))
+
 (deftest test-latin-timestr
   (is (= "01:00 PM" (sut/latin-timestr "01:00 μμ")))
   (is (= "01:00 AM"
