@@ -29,19 +29,27 @@
 
 ;;; Clean up DOM
 
+(defn area-id [area-dom]
+  (let [raw-area-id (-> area-dom :attrs :value)]
+    (if (empty? raw-area-id)
+      0
+      (Integer/parseInt raw-area-id))))
+
 (defn num-pages [dom]
   (let [last-page-href (-> (hs/select (:last-page-link selectors) dom)
                            first
                            :attrs
                            :href)
         last-page-url  (str "https://sitapps.deddie.gr" last-page-href)]
-    (parser/page-num last-page-url)))
+    (if last-page-href
+      (parser/page-num last-page-url)
+      1)))
 
 (defn prefectures [dom]
   (->> dom
        (hs/select (:prefectures selectors))
        (map #(hash-map :deddie.prefecture/name     (-> % :content first)
-                       :deddie.prefecture/id       (-> % :attrs :value)
+                       :deddie.prefecture/id       (area-id %)
                        :deddie.prefecture/selected (-> % :attrs :selected)))))
 
 (defn prefecture [dom]
@@ -52,8 +60,8 @@
 (defn municipalities [dom]
   (->> dom
        (hs/select (:municipalities selectors))
-       (map #(hash-map :deddie.municipality/name   (-> % :content first)
-                       :deddie.municipality/id     (-> % :attrs :value)
+       (map #(hash-map :deddie.municipality/name     (-> % :content first)
+                       :deddie.municipality/id       (area-id %)
                        :deddie.municipality/selected (-> % :attrs :selected)))))
 
 (defn municipality [dom]

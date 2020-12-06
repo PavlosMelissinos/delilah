@@ -1,5 +1,7 @@
 (ns delilah.gr.deddie.api
   (:require [clojure.spec.alpha :as s]
+            [clojure.tools.logging :as log]
+
             [delilah.common.parser :as cparser]
             [delilah.gr.deddie :as deddie]
             [delilah.gr.deddie.parser :as parser]
@@ -20,8 +22,7 @@
   (->> (prefectures)
        (filter #(= (:deddie.prefecture/name %) name))
        (first)
-       (:deddie.prefecture/id)
-       (#(if (empty? %) 0 (Integer/parseInt %)))))
+       (:deddie.prefecture/id)))
 (s/fdef prefecture-name->id
   :args (s/cat :name :deddie.prefecture/name)
   :ret :deddie.prefecture/id)
@@ -39,18 +40,15 @@
   :args (s/cat :prefecture #(or (string? %) (integer? %)))
   :ret (s/coll-of :deddie/municipality))
 
-
 (defn municipality-name->id [name prefecture-id]
   (->> (municipalities prefecture-id)
        (filter #(= (:deddie.municipality/name %) name))
        (first)
-       (:deddie.municipality/id)
-       (#(if (empty? %) 0 (Integer/parseInt %)))))
+       (:deddie.municipality/id)))
 (s/fdef municipality-name->id
   :args (s/cat :name :deddie.municipality/name
                :prefecture-id :deddie.prefecture/id)
   :ret :deddie.prefecture/id)
-
 
 (defn all-municipalities []
   (let [prefs  (prefectures)
@@ -62,21 +60,18 @@
 (s/fdef all-municipalities
   :ret (s/coll-of :deddie/municipality))
 
-(defn dom
-  ([prefecture]
-   (dom prefecture nil 1))
-  ([prefecture municipality]
-   (dom prefecture municipality 1))
-  ([prefecture municipality page]
-   (let [prefecture-id   (if (number? prefecture)
-                           prefecture
-                           (prefecture-name->id prefecture))
-         municipality-id (if (or (number? municipality) (nil? municipality))
-                           municipality
-                           (municipality-name->id municipality prefecture-id))]
-     (-> (format "%s?PrefectureID=%s&MunicipalityID=%s" endpoint prefecture-id municipality-id)
-         (slurp)
-         (cparser/parse)))))
+(defn dom [{:keys [prefecture municipality page] :as ctx}]
+  (let [page            (or page 1)
+        prefecture-id   (if (number? prefecture)
+                          prefecture
+                          (prefecture-name->id prefecture))
+        municipality-id (if (or (number? municipality) (nil? municipality))
+                          municipality
+                          (municipality-name->id municipality prefecture-id))]
+    (-> (format "%s?PrefectureID=%s&MunicipalityID=%s&page=%s" endpoint prefecture-id municipality-id page)
+        (slurp)
+        (cparser/parse))))
+
 
 (defn outages
   ([prefecture]
@@ -86,8 +81,8 @@
 
 
 (comment
-  (def active-prefecture (-> (dom 10) scraper/prefecture))
-  (def active-prefecture (-> (dom "ΑΤΤΙΚΗΣ") scraper/prefecture))
+  (def active-prefecture (-> (dom {:prefecture 10}) scraper/prefecture))
+  (def active-prefecture (-> (dom {:prefecture "ΑΤΤΙΚΗΣ"}) scraper/prefecture))
 
   (def all-prefectures (prefectures))
 
@@ -110,4 +105,10 @@
 
   ; Pending outages within the municipality of Thessaloniki
   (def outages-map (outages 23 454))
-  (def outages-map (outages "ΘΕΣΣΑΛΟΝΙΚΗΣ" "ΘΕΣΣΑΛΟΝΙΚΗΣ")))
+  (def outages-map (outages "ΘΕΣΣΑΛΟΝΙΚΗΣ" "ΘΕΣΣΑΛΟΝΙΚΗΣ"))
+
+  (def num-pages (-> (dom {:prefecture "ΑΤΤΙΚΗΣ"})
+                     scraper/num-pages))
+
+  (def num-pages (-> (dom {:prefecture "ΘΕΣΣΑΛΟΝΙΚΗΣ"})
+                     scraper/num-pages)))
