@@ -1,4 +1,4 @@
-(ns delilah.dei.parser
+(ns delilah.gr.dei.parser
   (:require [java-time :as t]
             [hickory.select :as hs]))
 

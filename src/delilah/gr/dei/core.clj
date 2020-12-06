@@ -1,4 +1,4 @@
-(ns delilah.dei.core
+(ns delilah.gr.dei.core
   (:require [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [clojure.tools.reader.edn :as edn]
