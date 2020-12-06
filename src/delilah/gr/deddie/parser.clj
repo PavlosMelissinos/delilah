@@ -29,7 +29,9 @@
          latin-timestr
          (#(t/local-date-time formatter %)))))
 (s/fdef str->datetime
-  :args (s/and (s/cat :datetime string?)))
+  :args (s/alt :unary  (s/cat :datetime string?)
+               :binary (s/cat :datetime string?
+                              :formatter string?)))
 
 (defn datetime->str
   ([datetime]
@@ -37,7 +39,9 @@
   ([datetime formatter]
    (t/format formatter datetime)))
 (s/fdef datetime->str
-  :args (s/and (s/cat :datetime t/local-date-time?)))
+  :args (s/alt :unary  (s/cat :datetime t/local-date-time?)
+               :binary (s/cat :datetime t/local-date-time?
+                              :formatter string?)))
 
 (defn str->time
   ([time]
@@ -47,17 +51,23 @@
    (-> time
        latin-timestr
        (#(t/local-time formatter %)))))
+(s/fdef str->time
+  :args (s/alt :unary  (s/cat :time string?)
+               :binary (s/cat :time string? :formatter string?)))
 
 (defn deaccent [str]
   "Remove accent from string"
   ;; http://www.matt-reid.co.uk/blog_post.php?id=69
   (let [normalized (java.text.Normalizer/normalize str java.text.Normalizer$Form/NFD)]
     (clojure.string/replace normalized #"\p{InCombiningDiacriticalMarks}+" "")))
+(s/fdef deaccent
+  :args (s/cat :str string?))
 
 (defn cleanup [{:keys [content] :as tbl-entry}]
   (log/info (str "Cleaning up table entry " tbl-entry))
   (when content (-> content first clojure.string/trim)))
-
+(s/fdef cleanup
+  :args (s/cat :tbl-entry (s/keys :req-un [::content])))
 
 (defn- split-area-text [area-text]
   (-> (str "affected-numbers\n" area-text)

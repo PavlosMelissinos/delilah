@@ -28,11 +28,22 @@
                (clojure.string/replace #"AM" "πμ")
                (clojure.string/replace #"PM" "μμ"))))))
 
-(deftest test-prefecture
-  (is (= {:deddie.prefecture/id "10"
-          :deddie.prefecture/name "ΑΤΤΙΚΗΣ"}
-         (->> dom sut/prefecture))))
+(deftest test-deaccent
+  (is (= "γαιδουρι"
+         (sut/deaccent "γαϊδούρι"))))
 
+
+(deftest cleanup
+  (is (= "ΚΡΩΠΙΑΣ"
+         (sut/cleanup {:type :element,
+                       :attrs {:class "col-xs-2"},
+                       :tag :td,
+                       :content ["\r\nΚΡΩΠΙΑΣ                        "]})))
+  (is (= "6/12/2020 3:00:00 μμ"
+         (sut/cleanup  {:type :element,
+                        :attrs {:class "col-xs-1"},
+                        :tag :td,
+                        :content ["6/12/2020 3:00:00 μμ"]}))))
 
 (deftest test-split-area-text
   (is (= ["affected-numbers" "Ζυγά" "street" "ΕΦΕΣΟΥ" "from-street" "ΕΦΕΣΟΥ ΝΟ 26" "to-street" "ΘΡΑΚΗΣ" "from" "07:30 πμ" "to""02:30 μμ"]
@@ -101,7 +112,7 @@
 
 (deftest test-affected-areas
   (let [area-text "Ζυγά      οδός:ΕΦΕΣΟΥ απο κάθετο: ΕΦΕΣΟΥ ΝΟ 26 έως κάθετο: ΘΡΑΚΗΣ από: 07:30 πμ έως: 02:30 μμ\nΜονά      οδός:ΕΦΕΣΟΥ απο κάθετο: ΚΟΥΚΛΟΥΤΖΑ έως: ΕΦΕΣΟΥ ΝΟ 35 από: 07:30 πμ έως: 02:30 μμ\nΜονά/Ζυγά οδός:ΑΙΓΑΙΟΥ απο κάθετο: ΚΩΝΣΤΑΝΤΙΝΟΥΠΟΛΩΣ έως: ΑΙΓΑΙΟΥ ΝΟ 28 από: 07:30 πμ έως: 02:30 μμ\nΜονά      οδός:ΚΩΝΣΤΑΝΤΙΝΟΥΠΟΛΩΣ απο: ΚΩΝΣΤΑΝΤΙΝΟΥΠΟΛΩΣ ΝΟ 7 έως κάθετο: ΕΦΕΣΟΥ από: 07:30 πμ έως: 02:30 μμ\nΜονά/Ζυγά οδός:ΙΩΝΙΑΣ απο κάθετο: ΠΕΡΓΑΜΟΥ έως κάθετο: ΑΙΓΑΙΟΥ από: 07:30 πμ έως: 02:30 μμ\nΜονά      οδός:ΒΟΥΡΝΟΒΑ απο κάθετο: ΑΙΓΑΙΟΥ έως κάθετο: ΘΡΑΚΗΣ από: 07:30 πμ έως: 02:30 μμ"
-        fmt-time-fn (fn [tm] (sut/datetime->str tm "HH:mm"))]
+        fmt-time-fn (fn [tm] (t/format "HH:mm" tm))]
     (is (= [{:to-street        "ΘΡΑΚΗΣ"
              :from-street      "ΕΦΕΣΟΥ ΝΟ 26"
              :from             "07:30"
@@ -139,42 +150,3 @@
                 sut/affected-areas
                 (map #(update % :from fmt-time-fn))
                 (map #(update % :to fmt-time-fn)))))))
-
-
-(deftest test-do-task
-  (let [outages [{:start          "10/11/2020 8:00:00 πμ",
-                  :end            "10/11/2020 1:00:00 μμ",
-                  :municipality   "Ν.ΣΜΥΡΝΗΣ",
-                  :affected-areas [{:to-street "ΜΕΤΡΩΝ",
-                                    :from-street "ΒΟΣΠΟΡΟΥ Ν0 59",
-                                    :from "08:00 πμ",
-                                    :affected-numbers "Μονά/Ζυγά",
-                                    :street "ΒΟΣΠΟΡΟΥ",
-                                    :to "01:00 μμ"}
-                                   {:to-street "ΣΩΚΙΩΝ",
-                                    :from-street "ΜΕΤΡΩΝ",
-                                    :from "08:00 πμ",
-                                    :affected-numbers "Μονά/Ζυγά",
-                                    :street "ΦΙΛΙΠΠΟΥΠΟΛΕΩΣ",
-                                    :to "01:00 μμ"}
-                                   {:to-street "ΣΤΡ. ΝΙΔΕΡ",
-                                    :from-street "ΣΩΚΙΩΝ",
-                                    :from "08:00 πμ",
-                                    :affected-numbers "Μονά/Ζυγά",
-                                    :street "ΣΤΑΥΡΟΥΠΟΛΕΩΣ",
-                                    :to "01:00 μμ"}
-                                   {:to-street "ΔΑΡΔΑΝΕΛΛΙΩΝ",
-                                    :from-street "ΣΤΡ. ΝΙΔΕΡ",
-                                    :from "08:00 πμ",
-                                    :affected-numbers "Μονά/Ζυγά",
-                                    :street "ΣΩΚΙΩΝ",
-                                    :to "01:00 μμ"}],
-                  :note-id        "474",
-                  :cause          "Κατασκευές"
-                  :affected-areas-raw "Μονά/Ζυγά οδός:ΒΟΣΠΟΡΟΥ απο κάθετο: ΒΟΣΠΟΡΟΥ Ν0 59 έως κάθετο: ΜΕΤΡΩΝ από: 08:00 πμ έως: 01:00 μμ\nΜονά/Ζυγά οδός:ΦΙΛΙΠΠΟΥΠΟΛΕΩΣ απο κάθετο: ΜΕΤΡΩΝ έως κάθετο: ΣΩΚΙΩΝ από: 08:00 πμ έως: 01:00 μμ\nΜονά/Ζυγά οδός:ΣΤΑΥΡΟΥΠΟΛΕΩΣ απο κάθετο: ΣΩΚΙΩΝ έως κάθετο: ΣΤΡ. ΝΙΔΕΡ από: 08:00 πμ έως: 01:00 μμ\nΜονά/Ζυγά οδός:ΣΩΚΙΩΝ απο κάθετο: ΣΤΡ. ΝΙΔΕΡ  έως κάθετο: ΔΑΡΔΑΝΕΛΛΙΩΝ από: 08:00 πμ έως: 01:00 μμ"}]]
-    (with-redefs [;t/local-time second
-                  ;t/local-date-time second
-                 sut/str->time (fn [a & b] a)
-                  sut/str->datetime (fn [a & b] a)]
-      (is (= outages
-             (sut/outages dom))))))
