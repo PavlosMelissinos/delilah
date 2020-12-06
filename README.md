@@ -35,16 +35,16 @@ Require deddie API
 results in:
 
 ```clojure
-({:start #object[java.time.LocalDateTime 0x3b27ee8a "2020-11-23T08:00"],
+[{:start #object[java.time.LocalDateTime 0x3b27ee8a "2020-11-23T08:00"],
   :end #object[java.time.LocalDateTime 0x24ff0bf8 "2020-11-23T14:30"],
   :municipality "ΣΥΚΕΩΝ",
   :affected-areas
-  ("θα μείνει χωρίς ρεύμα η περιοχή των ΣΥΚΕΩΝ και συγκεκριμένα οι δρόμοι:Βορ.Ηπειρου(8ο Δημ.Σχολειο), Σολωμου, Ελυτη, Καποδιστριου(για δύο έως τρεις ώρες σε κάθε δρόμος το διάστημα 08:00 με 14:30.)"),
+  ["θα μείνει χωρίς ρεύμα η περιοχή των ΣΥΚΕΩΝ και συγκεκριμένα οι δρόμοι:Βορ.Ηπειρου(8ο Δημ.Σχολειο), Σολωμου, Ελυτη, Καποδιστριου(για δύο έως τρεις ώρες σε κάθε δρόμος το διάστημα 08:00 με 14:30.)"],
   :note-id nil,
   :cause "Κατασκευές",
   :affected-areas-raw
   "θα μείνει χωρίς ρεύμα η περιοχή των ΣΥΚΕΩΝ και συγκεκριμένα οι δρόμοι:Βορ.Ηπειρου(8ο Δημ.Σχολειο), Σολωμου, Ελυτη, Καποδιστριου(για δύο έως τρεις ώρες σε κάθε δρόμος το διάστημα 08:00 με 14:30.)"}
-  ...)
+  ...]
 ```
 
 ##### Specific municipality
@@ -56,11 +56,11 @@ results in:
 
 results in
 ```clojure
-({:start #object[java.time.LocalDateTime 0x754efe6c "2020-11-24T08:00"],
+[{:start #object[java.time.LocalDateTime 0x754efe6c "2020-11-24T08:00"],
   :end #object[java.time.LocalDateTime 0x3d7a83d8 "2020-11-24T11:00"],
   :municipality "ΑΘΗΝΑΙΩΝ",
   :affected-areas
-  ("ΠΕΛΑΤΕΣ ΕΠΙ ΤΩΝ ΟΔΩΝ ΧΑΤΖΗΚΩΝΣΤΑΝΤΗ ΛΟΥΙΖΗΣ ΡΙΑΝΚΟΥΡ ΠΑΝΟΡΜΟΥ."),
+  ["ΠΕΛΑΤΕΣ ΕΠΙ ΤΩΝ ΟΔΩΝ ΧΑΤΖΗΚΩΝΣΤΑΝΤΗ ΛΟΥΙΖΗΣ ΡΙΑΝΚΟΥΡ ΠΑΝΟΡΜΟΥ."],
   :note-id "810",
   :cause "Κατασκευές",
   :affected-areas-raw
@@ -69,10 +69,10 @@ results in
   :end #object[java.time.LocalDateTime 0x1aef31cb "2020-11-25T11:30"],
   :municipality "ΑΘΗΝΑΙΩΝ",
   :affected-areas
-  ({:from #object[java.time.LocalTime 0x216fa4 "08:00"],
+  [{:from #object[java.time.LocalTime 0x216fa4 "08:00"],
     :affected-numbers "Μονά",
     :street "ΛΕΩΦ.ΙΩΝΙΑΣ Νο 53",
-    :to #object[java.time.LocalTime 0x4157131f "11:30"]}),
+    :to #object[java.time.LocalTime 0x4157131f "11:30"]}],
   :note-id "951",
   :cause "Λειτουργία",
   :affected-areas-raw
@@ -80,10 +80,11 @@ results in
  {:start #object[java.time.LocalDateTime 0x7ed3770e "2020-11-25T08:00"],
   :end #object[java.time.LocalDateTime 0x561e1294 "2020-11-25T12:00"],
   :municipality "ΑΘΗΝΑΙΩΝ",
-  :affected-areas ("ΠΕΛΑΤΕΣ ΕΠΙ ΤΗΣ ΟΔΟΥ ΑΓ.ΛΟΥΚΑ."),
+  :affected-areas ["ΠΕΛΑΤΕΣ ΕΠΙ ΤΗΣ ΟΔΟΥ ΑΓ.ΛΟΥΚΑ."],
   :note-id "816",
   :cause "Κατασκευές",
-  :affected-areas-raw "ΠΕΛΑΤΕΣ ΕΠΙ ΤΗΣ ΟΔΟΥ ΑΓ.ΛΟΥΚΑ."}...)
+  :affected-areas-raw "ΠΕΛΑΤΕΣ ΕΠΙ ΤΗΣ ΟΔΟΥ ΑΓ.ΛΟΥΚΑ."},
+ ...)
 ```
 
 
@@ -99,7 +100,7 @@ Here's another example of the advanced parser for Athens
   :end #object[java.time.LocalDateTime 0x26bd13e3 "2020-11-25T12:00"],
   :municipality "ΑΘΗΝΑΙΩΝ",
   :affected-areas
-  ({:from-street "ΙΘΑΚΗΣ έως  ΚΑΛΥΜΝΟΥ ΝΟ 22",
+  [{:from-street "ΙΘΑΚΗΣ έως  ΚΑΛΥΜΝΟΥ ΝΟ 22",
     :from #object[java.time.LocalTime 0x263d38d6 "08:30"],
     :affected-numbers "Ζυγά",
     :street "ΚΑΛΥΜΝΟΥ",
@@ -108,7 +109,7 @@ Here's another example of the advanced parser for Athens
     :from #object[java.time.LocalTime 0x1f8d7f6a "08:30"],
     :affected-numbers "Ζυγά",
     :street "ΑΡΙΣΤΟΤΕΛΟΥΣ",
-    :to #object[java.time.LocalTime 0x63dc365f "12:00"]}),
+    :to #object[java.time.LocalTime 0x63dc365f "12:00"]}],
   :note-id "952",
   :cause "Λειτουργία",
   :affected-areas-raw
