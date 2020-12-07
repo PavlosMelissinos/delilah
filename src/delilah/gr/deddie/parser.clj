@@ -43,13 +43,13 @@
   :ret string?)
 
 (defn str->datetime
-    ([datetime]
-     (str->datetime datetime "d/M/yyyy h:mm:ss a"))
-    ([datetime formatter]
-     (log/info (format "Coercing datetime string %s as %s" datetime formatter))
-     (-> datetime
-         latin-timestr
-         (#(t/local-date-time formatter %)))))
+  ([datetime]
+   (str->datetime datetime "d/M/yyyy h:mm:ss a"))
+  ([datetime formatter]
+   (log/info (format "Coercing datetime string %s as %s" datetime formatter))
+   (-> datetime
+       latin-timestr
+       (#(t/local-date-time formatter %)))))
 (s/fdef str->datetime
   :args (s/alt :unary  (s/cat :datetime string?)
                :binary (s/cat :datetime string?
@@ -75,7 +75,8 @@
        (#(t/local-time formatter %)))))
 (s/fdef str->time
   :args (s/alt :unary  (s/cat :time string?)
-               :binary (s/cat :time string? :formatter string?)))
+               :binary (s/cat :time string? :formatter string?))
+  :ret t/local-time?)
 
 (defn deaccent [str]
   "Remove accent from string"
@@ -91,6 +92,11 @@
 (s/fdef cleanup
   :args (s/cat :tbl-entry (s/keys :req-un [::content])))
 
+(defn enforce-even [v]
+  (if (-> v count odd?)
+    (-> (into [] v) (conj ""))
+    v))
+
 (defn- split-area-text [area-text]
   (-> (str "affected-numbers\n" area-text)
       (clojure.string/replace "οδός:" "\nstreet\n")
@@ -99,24 +105,37 @@
       (clojure.string/replace "απο κάθετο:" "\nfrom-street\n")
       (clojure.string/replace "έως κάθετο:" "\nto-street\n")
       (clojure.string/split-lines)
-      ((partial map clojure.string/trim))))
+      ((partial map clojure.string/trim))
+      enforce-even))
+(s/fdef split-area-text
+  :args (s/cat :area-text string?)
+  :ret (s/* (s/cat :k string? :v any?)))
 
 (defn- parse-area-text [area-text]
   (->> area-text
        split-area-text
        (apply hash-map)
        walk/keywordize-keys))
+(s/fdef parse-area-text
+  :args (s/cat :area-text string?)
+  :ret  (s/keys
+         :opt-un [::from-street ::to-street
+                  ::from ::to
+                  ::affected-numbers
+                  ::street]))
 
 (defn affected-area [area-text]
   (log/info "Parsing outage data for affected area...")
   (cond
     (or (str/starts-with? area-text "Μονά")
         (str/starts-with? area-text "Ζυγά"))
-    (let [parse-times-fn (fn [time] (when time (str->time time "hh:mm a")))]
+    (let [parse-times-fn (fn [time]
+                           (when (not (empty? time))
+                             (str->time time "hh:mm a")))]
       (-> area-text
           parse-area-text
-          (update :from #(parse-times-fn %))
-          (update :to #(parse-times-fn %))))
+          (update :from parse-times-fn)
+          (update :to parse-times-fn)))
 
     :else
     area-text))

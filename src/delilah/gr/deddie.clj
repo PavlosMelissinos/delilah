@@ -58,7 +58,7 @@
 (s/def :deddie.prefecture/name (s/and string?
                                       prefectures))
 (s/def :deddie.prefecture/selected boolean?)
-(s/def :deddie.prefecture/id string?)
+(s/def :deddie.prefecture/id #(or (string? %) (integer? %)))
 
 (s/def :deddie/prefecture
   (s/keys :req [:deddie.prefecture/name
@@ -67,7 +67,7 @@
 
 (s/def :deddie.municipality/name string?)
 (s/def :deddie.municipality/selected boolean?)
-(s/def :deddie.municipality/id string?)
+(s/def :deddie.municipality/id #(or (string? %) (integer? %)))
 
 (s/def :deddie/municipality
   (s/keys :req [:deddie.municipality/name
