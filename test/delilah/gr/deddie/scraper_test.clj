@@ -17,6 +17,11 @@
              slurp
              edn/read-string))
 
+(def dom2 (-> "gr/deddie/dom2.edn"
+             io/resource
+             slurp
+             edn/read-string))
+
 (deftest test-area-id
   (is (= 10
          (-> (hs/select (:prefecture sut/selectors) dom)
@@ -86,3 +91,13 @@
                   parser/str->datetime (fn [a & b] a)]
       (is (= outages
              (sut/outages dom))))))
+
+(deftest test-outages-incomplete
+  (let [outages2 (-> "gr/deddie/outages-incomplete.edn"
+                     io/resource
+                     slurp
+                     edn/read-string)]
+    (with-redefs [parser/str->time     (fn [a & b] a)
+                  parser/str->datetime (fn [a & b] a)]
+      (is (= outages2
+             (map #(dissoc % :affected-areas-raw) (sut/outages dom2)))))))

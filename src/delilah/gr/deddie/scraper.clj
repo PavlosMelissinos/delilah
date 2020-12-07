@@ -4,7 +4,8 @@
 
             [hickory.select :as hs]
 
-            [delilah.gr.deddie.parser :as parser]))
+            [delilah.gr.deddie.parser :as parser]
+            [clojure.spec.alpha :as s]))
 
 (def selectors
   {:prefecture     (hs/descendant
@@ -44,6 +45,8 @@
     (if last-page-href
       (parser/page-num last-page-url)
       1)))
+(s/fdef num-pages
+  :args (s/cat :dom (s/keys :req-un [::content])))
 
 (defn prefectures [dom]
   (->> dom
@@ -80,10 +83,3 @@
                            (partition (count labels)))]
     (log/info (str "Outage entries: " (vector rows)))
     (map parser/outage rows)))
-
-(comment
-
-  (let [href "/Outages2Public/Home/OutagesPartial?page=14&municipalityID=&prefectureID=10"
-        url (str "https://siteapps.deddie.gr" href)]
-    (-> url
-        parse/page-num)))
