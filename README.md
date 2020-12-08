@@ -1,5 +1,9 @@
 # Delilah
 
+> Keep your cotton picken fingers out of my hair.
+>
+> -- Samson
+
 Status: Alpha, api still subject to change
 
 Delilah is an agent that retrieves information about power services
