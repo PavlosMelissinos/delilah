@@ -41,6 +41,13 @@
                (clojure.string/replace #"AM" "πμ")
                (clojure.string/replace #"PM" "μμ"))))))
 
+
+(deftest test-str->time->str
+  (let []
+    (is (= "10:00"
+           (t/format "HH:mm" (sut/str->time "10:00"))
+           (t/format "HH:mm" (sut/str->time "10:00 πμ"))))))
+
 (deftest test-deaccent
   (is (= "γαιδουρι"
          (sut/deaccent "γαϊδούρι"))))
@@ -82,7 +89,13 @@
          (@#'sut/split-area-text "Μονά/Ζυγά οδός:ΙΩΝΙΑΣ απο κάθετο: ΠΕΡΓΑΜΟΥ έως κάθετο: ΑΙΓΑΙΟΥ από: 07:30 πμ έως: 02:30 μμ")))
 
   (is (= ["affected-numbers" "Μονά" "street" "ΒΟΥΡΝΟΒΑ" "from-street" "ΑΙΓΑΙΟΥ" "to-street" "ΘΡΑΚΗΣ" "from" "07:30 πμ" "to" "02:30 μμ"]
-         (@#'sut/split-area-text "Μονά      οδός:ΒΟΥΡΝΟΒΑ απο κάθετο: ΑΙΓΑΙΟΥ έως κάθετο: ΘΡΑΚΗΣ από: 07:30 πμ έως: 02:30 μμ"))))
+         (@#'sut/split-area-text "Μονά      οδός:ΒΟΥΡΝΟΒΑ απο κάθετο: ΑΙΓΑΙΟΥ έως κάθετο: ΘΡΑΚΗΣ από: 07:30 πμ έως: 02:30 μμ")))
+
+  (is (= ["affected-numbers" "Μονά/Ζυγά" "street" "ΠΑΠΑΝΑΣΤΑΣΙΟΥ" "from-street" "ΕΒΡΟΥ" "to-street" "ΠΛΑΣΤΗΡΑ" "from" "08:00 πμ" "to" ""]
+         (@#'sut/split-area-text "Μονά/Ζυγά οδός:ΠΑΠΑΝΑΣΤΑΣΙΟΥ απο κάθετο: ΕΒΡΟΥ έως κάθετο: ΠΛΑΣΤΗΡΑ από: 08:00 πμ έως")))
+
+  (is (= ["affected-numbers" "Μονά" "street" "ΝΑΥ.ΒΟΤΣΗ" "from-street" "ΚΑΠΕΤΑΝ ΛΑΧΑΝΑ" "to-street" "ΝΑΥ.ΒΟΤΣΗ ΝΟ 49" "from" "08:00 πμ" "to" "11:00"]
+         (@#'sut/split-area-text "Μονά οδός:ΝΑΥ.ΒΟΤΣΗ απο κάθετο: ΚΑΠΕΤΑΝ ΛΑΧΑΝΑ έως κάθετο: ΝΑΥ.ΒΟΤΣΗ ΝΟ 49 από: 08:00 πμ έως: 11:00 "))))
 
 (deftest test-parse-area-text
   (is (= {:to-street "ΕΡ.ΣΤΑΥΡΟΥ",
@@ -200,6 +213,17 @@
               {:to-street "ΚΑΖΑΝΤΖΑΚΗ", :from-street "Γ.ΑΦΑΡΑ", :from "08:00", :affected-numbers "Μονά/Ζυγά", :street "ΑΝΑΛΗΨΕΩΣ", :to "14:30"}
               {:to-street "ΚΑΖΑΝΤΖΑΚΗ", :from-street "ΑΓ.ΦΑΝΟΥΡΙΟΥ", :from "08:00", :affected-numbers "Μονά/Ζυγά", :street "ΒΕΝΙΖΕΛΟΥ", :to "14:30"}
               {:to-street "ΕΡ.ΣΤΑΥΡΟΥ", :from-street "Κ.ΠΑΛΑΜΑ", :from nil, :affected-numbers "Μονά", :street "ΑΓ.ΠΑΝΤΕΛΕΗΜΟΝΟΣ", :to nil}]
+             (->> area-text
+                  sut/affected-areas
+                  (map #(update % :from fmt-time-fn))
+                  (map #(update % :to fmt-time-fn)))))))
+
+  (testing "Unknown"
+    (let [area-text "Μονά οδός:ΖΥΜΠΡΑΚΑΚΗ απο κάθετο: ΓΙΑΝΝΑΡΗ έως κάθετο: ΚΑΠΕΤΑΝ ΛΑΧΑΝΑ από: 08:00 πμ έως: 11:00 πμ Ζυγά οδός: ΖΥΜΠΡΑΚΑΚΗ Νο 82 από: 08:00 πμ έως: 11:00 πμ Μονά/Ζυγά οδός:ΚΑΠΕΤΑΝ ΛΑΧΑΝΑ απο κάθετο: ΖΥΜΠΡΑΚΑΚΗ έως κάθετο: ΝΑΥ.ΒΟΤΣΗ από: 08:00 πμ έως: 11:00 πμ Μονά οδός:ΝΑΥ.ΒΟΤΣΗ απο κάθετο: ΚΑΠΕΤΑΝ ΛΑΧΑΝΑ έως κάθετο: ΝΑΥ.ΒΟΤΣΗ ΝΟ 49 από: 08:00 πμ έως: 11:00 "
+          fmt-time-fn (fn [tm]
+                        (when (not (nil? tm))
+                          (t/format "HH:mm" tm)))]
+      (is (= [{:to-street "ΝΑΥ.ΒΟΤΣΗ ΝΟ 49", :from-street "ΚΑΠΕΤΑΝ ΛΑΧΑΝΑ", :from "08:00", :affected-numbers "Μονά", :street "ΝΑΥ.ΒΟΤΣΗ", :to "11:00"}]
              (->> area-text
                   sut/affected-areas
                   (map #(update % :from fmt-time-fn))

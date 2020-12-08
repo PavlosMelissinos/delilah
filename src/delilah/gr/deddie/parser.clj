@@ -67,12 +67,23 @@
 
 (defn str->time
   ([time]
-   (str->time time "hh:mm a"))
+   (str->time time ""))
   ([time formatter]
-   (log/info (format "Coercing time string %s as %s" time formatter))
-   (-> time
-       latin-timestr
-       (#(t/local-time formatter %)))))
+   (def time-glb time)
+   (let [formatted-timestr (-> time str/trim str/upper-case latin-timestr)]
+     (cond
+       (not-empty formatter)
+       (do
+         (log/info (format "Coercing time string %s as %s" time formatter))
+         (t/local-time formatter formatted-timestr))
+
+       (or (str/includes? formatted-timestr "PM")
+           (str/includes? formatted-timestr "AM"))
+       (str->time formatted-timestr "hh:mm a")
+
+       :else
+       (str->time formatted-timestr "HH:mm")
+       ))))
 (s/fdef str->time
   :args (s/alt :unary  (s/cat :time string?)
                :binary (s/cat :time string? :formatter string?))
@@ -100,10 +111,12 @@
 (defn- split-area-text [area-text]
   (-> (str "affected-numbers\n" area-text)
       (clojure.string/replace "οδός:" "\nstreet\n")
-      (clojure.string/replace "από:" "\nfrom\n")
-      (clojure.string/replace "έως:" "\nto\n")
       (clojure.string/replace "απο κάθετο:" "\nfrom-street\n")
       (clojure.string/replace "έως κάθετο:" "\nto-street\n")
+      (clojure.string/replace "από:" "\nfrom\n")
+      (clojure.string/replace "έως:" "\nto\n")
+      (clojure.string/replace "από" "\nfrom\n")
+      (clojure.string/replace "έως" "\nto\n")
       (clojure.string/split-lines)
       ((partial map clojure.string/trim))
       enforce-even))
@@ -131,7 +144,7 @@
         (str/starts-with? area-text "Ζυγά"))
     (let [parse-times-fn (fn [time]
                            (when (not (empty? time))
-                             (str->time time "hh:mm a")))]
+                             (str->time time)))]
       (-> area-text
           parse-area-text
           (update :from parse-times-fn)
