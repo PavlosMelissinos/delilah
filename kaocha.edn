@@ -7,12 +7,14 @@
                                        :test-paths              ["deddie/test"]
                                        :source-paths            ["deddie/src" "components/common_parser/src"]
                                        :ns-patterns             ["-test$"]}]
- :kaocha.plugin/randomize            true
- :kaocha.plugin.profiling/profiling? true
- :kaocha.plugin.profiling/count      5
+ :color?                             true
  :kaocha/reporter                    [kaocha.report/documentation]
- :kaocha.hooks/post-load             [delilah.kaocha/post-load-hook]
  :plugins                            [:kaocha.plugin/hooks
                                       :kaocha.plugin/notifier
                                       :kaocha.plugin/profiling
-                                      :kaocha.plugin/print-invocations]}
+                                      :kaocha.plugin/print-invocations
+                                      :kaocha.plugin/orchestra
+                                      #_kaocha.plugin/preloads]
+ :kaocha.plugin/randomize            true
+ :kaocha.plugin.profiling/profiling? true
+ :kaocha.plugin.profiling/count      5}
