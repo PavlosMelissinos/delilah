@@ -82,8 +82,7 @@
        (str->time formatted-timestr "hh:mm a")
 
        :else
-       (str->time formatted-timestr "HH:mm")
-       ))))
+       (str->time formatted-timestr "HH:mm")))))
 (s/fdef str->time
   :args (s/alt :unary  (s/cat :time string?)
                :binary (s/cat :time string? :formatter string?))

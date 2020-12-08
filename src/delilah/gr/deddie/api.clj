@@ -77,7 +77,18 @@
   ([prefecture]
    (outages prefecture nil))
   ([prefecture municipality]
-   (s/outages (dom prefecture municipality))))
+   (loop [all-outages     []
+          partial-outages []
+          page            1]
+     (if (and (empty? partial-outages)
+              (not-empty all-outages))
+       all-outages
+       (recur (concat all-outages partial-outages)
+              (-> (dom {:prefecture prefecture
+                        :municipality municipality
+                        :page page})
+                  scraper/outages)
+              (inc page))))))
 
 
 (comment
@@ -95,15 +106,15 @@
 
   (def all-municipalities (all-municipalities))
 
-  ; Pending outages within the municipality of Athens
+  ; Upcoming outages within the municipality of Athens
   (def outages-map (outages 10 112))
   (def outages-map (outages "ΑΤΤΙΚΗΣ" "ΑΘΗΝΑΙΩΝ"))
 
-  ; Pending outages within the entire prefecture of Thessaloniki
+  ; Upcoming outages within the entire prefecture of Thessaloniki
   (def outages-map (outages 23))
   (def outages-map (outages "ΘΕΣΣΑΛΟΝΙΚΗΣ"))
 
-  ; Pending outages within the municipality of Thessaloniki
+  ; Upcoming outages within the municipality of Thessaloniki
   (def outages-map (outages 23 454))
   (def outages-map (outages "ΘΕΣΣΑΛΟΝΙΚΗΣ" "ΘΕΣΣΑΛΟΝΙΚΗΣ"))
 
