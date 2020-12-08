@@ -1,7 +1,11 @@
 #kaocha/v1
-{:tests                              [{:id                      :all
+{:tests                              [{:id                      :delilah
                                        :test-paths              ["test"]
-                                       :source-paths            ["src"]
+                                       :source-paths            ["src" "components/common_parser/src"]
+                                       :ns-patterns             ["-test$"]}
+                                      {:id                      :deddie
+                                       :test-paths              ["deddie/test"]
+                                       :source-paths            ["deddie/src" "components/common_parser/src"]
                                        :ns-patterns             ["-test$"]}]
  :kaocha.plugin/randomize            true
  :kaocha.plugin.profiling/profiling? true
