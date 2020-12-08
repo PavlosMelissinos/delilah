@@ -1,6 +1,6 @@
 # Delilah
 
-> Keep your cotton picken fingers out of my hair.
+> Keep your cotton pickin' fingers out my curly hair.
 >
 > -- Samson
 
