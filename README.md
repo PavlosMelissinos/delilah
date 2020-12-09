@@ -21,7 +21,7 @@ Add the following entry to your deps.edn file
 
 ### DEDDIE
 
-[Documentation](deddie/README.md)
+[Documentation](projects/deddie/README.md)
 
 ### DEI
 

@@ -1,16 +1,16 @@
 # DEDDIE
 
-This is a [delilah](../README.md) component that retrieves announced upcoming outages in Greece, for a certain prefecture/municipality.
+This is a [delilah](/README.md) component that retrieves announced upcoming outages in Greece, for a certain prefecture/municipality.
 
 ## Getting started
 
-First [include delilah to your project](../README.md)
+First [include delilah to your project](/README.md)
 
 If you don't need the other delilah projects, you can selectively include just deddie
 
 ```clojure
 {:deps [delilah/deddie {:git/url "https://github.com/PavlosMelissinos/delilah.git"
-                        :deps/root "deddie"
+                        :deps/root "projects/deddie"
                         :sha ???}]}
 ```
 

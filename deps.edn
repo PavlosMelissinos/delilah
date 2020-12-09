@@ -1,8 +1,9 @@
 {:paths    ["src"
             "resources"
-            "deddie/resources"
-            "deddie/src"
-            "components/common_parser/src"]
+            "components/common_parser/src"
+
+            "bases/deddie/resources"
+            "bases/deddie/src"]
  :jvm-opts ["-Duser.timezone=UTC"
             "-XX:-OmitStackTraceInFastThrow"]
  :deps     {org.clojure/clojure                 {:mvn/version "1.10.1"}
@@ -18,15 +19,17 @@
             org.eclipse.jetty/jetty-util        {:mvn/version "9.4.35.v20201120"}}
  :aliases  {:dev  {:extra-paths ["development/src"
                                  "test"
-                                 "deddie/test-resources"
-                                 "deddie/test"]
+
+                                 "bases/deddie/test-resources"
+                                 "bases/deddie/test"]
                    :extra-deps  {org.clojure/tools.namespace {:mvn/version "0.2.11"}
                                  lambdaisland/kaocha         {:mvn/version "1.0.732"}
                                  rewrite-clj/rewrite-clj     {:mvn/version "0.6.1"}
                                  spec-provider/spec-provider {:mvn/version "0.4.14"}}}
             :test {:extra-paths ["test"
                                  "test-resources"
-                                 "deddie/test-resources"
-                                 "deddie/test"]
+
+                                 "bases/deddie/test-resources"
+                                 "bases/deddie/test"]
                    :extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}}
                    :main-opts   ["-m" "kaocha.runner" "--config-file" "kaocha.edn"]}}}

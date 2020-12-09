@@ -1,6 +1,7 @@
-{:paths    ["src"
-            "resources"
-            "../components/common_parser/src"]
+{:paths    ["../../components/common_parser/src"
+
+            "../../bases/deddie/src"
+            "../../bases/deddie/resources"]
  :jvm-opts ["-Duser.timezone=UTC"
             "-XX:-OmitStackTraceInFastThrow"]
  :deps     {org.clojure/clojure                 {:mvn/version "1.10.1"}
@@ -13,17 +14,18 @@
             clj-http/clj-http                   {:mvn/version "3.10.0"}
             hickory/hickory                     {:mvn/version "0.7.1"}
             org.eclipse.jetty/jetty-util        {:mvn/version "9.4.35.v20201120"}}
- :aliases  {:dev  {:extra-paths ["src"
-                                 "../development/src"
-                                 "test"
-                                 "../development/test"
-                                 "test-resources"]
+ :aliases  {:dev  {:extra-paths ["../../development/src"
+                                 "../../development/test"
+
+                                 "../../bases/deddie/src"
+                                 "../../bases/deddie/test"
+                                 "../../bases/deddie/test-resources"]
                    :extra-deps  {org.clojure/tools.namespace {:mvn/version "0.2.11"}
                                  lambdaisland/kaocha         {:mvn/version "1.0.732"}
                                  rewrite-clj/rewrite-clj     {:mvn/version "0.6.1"}
                                  spec-provider/spec-provider {:mvn/version "0.4.14"}}}
-            :test {:extra-paths ["test"
-                                 "test-resources"
-                                 "../development/test"]
+            :test {:extra-paths ["../../bases/deddie/test"
+                                 "../../bases/deddie/test-resources"
+                                 "../../development/test"]
                    :extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}}
                    :main-opts   ["-m" "kaocha.runner" "--config-file" "kaocha.edn"]}}}
