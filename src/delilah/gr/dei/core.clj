@@ -1,4 +1,4 @@
-(ns delilah.gr.dei.scraper
+(ns delilah.gr.dei.core
   (:require [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [clojure.tools.reader.edn :as edn]
@@ -101,7 +101,7 @@
          :pdf-contents (fetch-file pdf-url cookies)))
 
 (defn save-pdf!
-    "Downloads and stores a pdf on disk."
+  "Downloads and stores a pdf on disk."
   [{:keys [pdf-contents download-dir dest-file] :as file}]
   (let [filepath         (format "%s/%s" download-dir dest-file)
         filepath-partial (str filepath ".part")]
@@ -115,7 +115,7 @@
                (-> ctx dom parser/parse)
                (catch Exception e
                  (do
-                   (log/info "Error parsing page! Trying to get fresh cookies...")
+                   (log/info "Error parsing page! Cookies might be stale...")
                    (with-refresh-cookies ctx)
                    (log/info "Retrying to parse page...")
                    (-> ctx dom parser/parse))))

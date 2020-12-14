@@ -4,12 +4,11 @@
             [clojure.tools.reader.edn :as edn]
 
             [clj-http.client :as http]
-            [me.raynes.fs :as fs]
 
-            [delilah.gr.dei.scraper :as scraper]
-            [delilah.gr.dei :as dei]))
+            [delilah.gr.dei.core :as dei]
+            [delilah.gr.dei :as ds]))
 
-(def save-pdf! scraper/save-pdf!)
+(def save-pdf! dei/save-pdf!)
 
 (defn latest-bill [{:keys [bills] :as data}]
   (->> bills (sort-by :bill-date) reverse first))
@@ -22,15 +21,17 @@
          cfg      (-> (merge cfg-base cfg)
                       (update-in [:driver :path-driver] fs/expand-home)
                       (update :delilah/cache-dir fs/expand-home))
-         data     (scraper/scrape cfg)]
+         data     (dei/scrape cfg)]
      (if save-files?
        (doseq [bill (:bills data)]
-         (scraper/save-pdf! bill))
+         (dei/save-pdf! bill))
        data))))
 (s/fdef extract
-  :args (s/cat :cfg ::dei/cfg))
+  :args (s/cat :cfg ::ds/cfg))
 
 (comment
+  (require '(me.raynes.fs :as fs)
+           '(clojure.tools.reader.edn :as edn))
   (def cfg (-> "~/.config/delilah/secrets.edn"
                fs/expand-home
                slurp
