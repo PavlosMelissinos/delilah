@@ -144,7 +144,8 @@ Check the [API source code](src/delilah/gr/deddie/api.clj) for some more example
 
 #### Setup
 
-Download a webdriver of your choice. Please note that currently only Firefox (geckodriver) is supported
+Download a webdriver of your choice. Please note that currently only Firefox (geckodriver) is supported.
+
 Extract the binary from the archive if needed and put it in `~/.cache/delilah/webdrivers/`.
 
 Require dei API
@@ -183,27 +184,12 @@ Approach #3: Full manual mode
   ; Choose the bill you want
   (rand-nth (:bills data)))
 ```
-The :pdf-contents key of the result stores the binary file as a byte array. You can use `clojure.java.io/copy` to save it to disk
+The :pdf-contents key of the result stores the binary file as a byte array. You can use `clojure.java.io/copy` to save it to disk.
 
-## Features
+## Upcoming features
 
-* [ ] Tests
-* [ ] Web driver support
-  * [X] Firefox
-  * [ ] Chromium
-* [ ] Power APIs
-  * [X] DEI
-    * [X] log in
-    * [X] get customer info
-    * [X] get property info
-    * [X] get available bills
-    * [X] download bill(s) in pdf form
-    * [ ] Tests and specs
-    * [ ] parse pdf
+* [ ] DEI
+  * [ ] Tests
+  * [ ] PDF content parser
+  * [ ] Chromedriver support
 * [ ] HEDNO (ΔΕΔΔΗΕ) power cuts
-    * [X] load page
-    * [X] get outage warnings for prefecture/municipality combination
-    * [X] parse raw text to get useful information such as street names affected by the outage
-    * [ ] retrieve all result pages
-    * [X] Tests
-    * [ ] specs
