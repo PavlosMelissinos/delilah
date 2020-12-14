@@ -1,5 +1,11 @@
 (ns delilah
   (:require [clojure.spec.alpha :as s]
-            [etaoin.api :as api]))
+            [me.raynes.fs :as fs]))
 
-(s/def ::driver #(api/driver? % "firefox"))
+(s/def ::cache-dir fs/directory?)
+(s/def :delilah.driver/type #{:firefox})
+(s/def :delilah.driver/headless boolean?)
+
+(s/def ::driver
+  (s/keys :req-un [:delilah.driver/type]
+          :opt-un [:delilah.driver/headless]))

@@ -1,18 +1,19 @@
 (ns delilah.api
-  (:require [delilah.gr.dei.core :as dei]
+  (:require [delilah.gr.dei.api :as dei]
             [delilah.gr.deddie.api :as deddie]))
 
 (defn parse [{:keys [provider] :as ctx}]
   (cond
-    (= provider :dei) (dei/do-task ctx)
+    (= provider :dei)    (dei/extract ctx)
     (= provider :deddie) (deddie/outages ctx)
-    :else             (throw
-                        (ex-info "Unrecognized provider" {:provider provider}))))
+    :else                (throw
+                          (ex-info "Unrecognized provider" {:provider provider}))))
 
 
 (comment
-  (let [ctx {:provider  :dei
-             :cache-dir "/path/to/delilah/cache/dei"
-             :user      ""
-             :pass      ""}]
-    (parse ctx)))
+  (def ctx (-> "~/.config/delilah/secrets.edn"
+               fs/expand-home
+               slurp
+               (edn/read-string)))
+
+  (parse (assoc ctx :provider :dei)))

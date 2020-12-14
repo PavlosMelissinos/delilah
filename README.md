@@ -142,7 +142,48 @@ Check the [API source code](src/delilah/gr/deddie/api.clj) for some more example
 
 ### DEI
 
-WIP - still lacking basic features
+#### Setup
+
+Download a webdriver of your choice. Please note that currently only Firefox (geckodriver) is supported
+Put it in `~/.cache/delilah/webdrivers/geckodriver`.
+
+Require dei API
+
+```clojure
+(:require [delilah.gr.dei.api :as dei])
+```
+
+#### Extract account data
+
+
+```clojure
+(dei/extract {:user "foo" :pass "bar"})
+```
+
+#### Download the bills in pdf form
+
+Approach #1: Specify it when calling the extract function
+
+```clojure
+(dei/extract {:user "foo" :pass "bar" :save-files? true})
+```
+
+Approach #2: Download just the latest bill
+
+```clojure
+(let [data (dei/extract {:user "foo" :pass "bar"})]
+  (-> data dei/latest-bill dei/save-pdf!))
+```
+
+Approach #3: Full manual mode
+
+```clojure
+(let [;Extract the data
+      data  (dei/extract {:user "foo" :pass "bar"})]
+  ; Choose the bill you want
+  (rand-nth (:bills data)))
+```
+The :pdf-contents key of the result stores the binary file as a byte array. You can use `clojure.java.io/copy` to save it to disk
 
 ## Features
 
