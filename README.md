@@ -145,7 +145,7 @@ Check the [API source code](src/delilah/gr/deddie/api.clj) for some more example
 #### Setup
 
 Download a webdriver of your choice. Please note that currently only Firefox (geckodriver) is supported
-Put it in `~/.cache/delilah/webdrivers/geckodriver`.
+Extract the binary from the archive if needed and put it in `~/.cache/delilah/webdrivers/`.
 
 Require dei API
 
