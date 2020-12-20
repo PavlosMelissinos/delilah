@@ -2,6 +2,7 @@
   (:require [clojure.spec.alpha :as s]
             [delilah :as d]))
 
+;; Config specs
 (s/def ::user string?)
 (s/def ::pass string?)
 (s/def ::save-files? boolean?)

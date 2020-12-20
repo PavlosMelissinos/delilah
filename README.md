@@ -156,10 +156,11 @@ Require dei API
 
 #### Extract account data
 
-
 ```clojure
 (dei/extract {:user "foo" :pass "bar"})
 ```
+
+> :warning: The pdf blobs are printed as vectors and can be really long, so use `(set! *print-length* 20)` to keep the output readable
 
 #### Download the bills in pdf form
 
@@ -179,8 +180,7 @@ Approach #2: Download just the latest bill
 Approach #3: Full manual mode
 
 ```clojure
-(let [;Extract the data
-      data  (dei/extract {:user "foo" :pass "bar"})]
+(let [data  (dei/extract {:user "foo" :pass "bar"})]
   ; Choose the bill you want
   (rand-nth (:bills data)))
 ```
