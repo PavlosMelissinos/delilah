@@ -72,7 +72,7 @@
                              (hs/find-in-text #"Έκδοση"))})
 
 (def parsers
-  {::d/customer-codes       customer-codes
+  {::d/customer-codes       customer-info
    ::d/active-customer-code active-customer-code
    ::d/contract             property-info
    ::d/customer-name        property-info
