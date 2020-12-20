@@ -1,6 +1,7 @@
 (ns delilah.gr.dei.parser
   (:require [java-time :as t]
             [hickory.select :as hs]
+            [hickory-css-selectors :as hcs]
             [delilah :as d]))
 
 (defn format-date [date]
@@ -54,23 +55,15 @@
 
 ;;;;;;;;;;;;;;; Selectors ;;;;;;;;;;;;;;;
 
-(def selectors
-  {::d/customer-codes       (hs/descendant
-                             (hs/id "ctl00_ctl00_Site_Main_Main_UserCustomerCodesList1_lstUserCustomerCodes")
-                             (hs/tag :option))
-   ::d/active-customer-code (hs/descendant
-                             (hs/id "ctl00_ctl00_Site_Main_Main_UserCustomerCodesList1_lstUserCustomerCodes")
-                             (hs/tag :option))
-   ::d/contract             (hs/id "ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerCode_value")
-   ::d/customer-name        (hs/id "ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerName_value")
-   ::d/street               (hs/id "ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerStreet_value")
-   ::d/street-number        (hs/id "ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerStreetNumber_value")
-   ::d/city                 (hs/id "ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerCity_value")
-   ::d/bills                (hs/descendant
-                             (hs/id "ctl00_ctl00_Site_Main_Main_CustomerCodeBills_CustomerCodeBillsContainer")
-                             (hs/class "BillsContainer")
-                             (hs/class "BillItem")
-                             (hs/find-in-text #"Έκδοση"))})
+(def css-selectors
+  {::d/customer-codes       "#ctl00_ctl00_Site_Main_Main_UserCustomerCodesList1_lstUserCustomerCodes option"
+   ::d/active-customer-code "#ctl00_ctl00_Site_Main_Main_UserCustomerCodesList1_lstUserCustomerCodes option"
+   ::d/contract             "#ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerCode_value"
+   ::d/customer-name        "#ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerName_value"
+   ::d/street               "#ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerStreet_value"
+   ::d/street-number        "#ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerStreetNumber_value"
+   ::d/city                 "#ctl00_ctl00_Site_Main_Main_CustomerCodeDetails_fvCustomerCodeDetails_CustomerCity_value"
+   ::d/bills                "#ctl00_ctl00_Site_Main_Main_CustomerCodeBills_CustomerCodeBillsContainer .BillsContainer .BillItem>a"})
 
 (def parsers
   {::d/customer-codes       customer-info
@@ -85,9 +78,9 @@
 
 (defn parse [dom]
   (let [parsed (merge-with
-                (fn [parse-fn selector] (parse-fn (hs/select selector dom)))
+                (fn [parse-fn selector] (parse-fn (hs/select (hcs/parse-css-selector selector) dom)))
                 parsers
-                selectors)]
+                css-selectors)]
     {:base-url      "https://www.dei.gr/EBill"
      :customer-code (::d/active-customer-code parsed)
      :property-info (select-keys parsed [::d/contract
