@@ -144,7 +144,14 @@ Check the [API source code](src/delilah/gr/deddie/api.clj) for some more example
 
 #### Setup
 
-Download a webdriver of your choice. Please note that currently only Firefox (geckodriver) is supported.
+Download a webdriver of your choice:
+
+* [geckodriver (Firefox)](https://github.com/mozilla/geckodriver/releases)
+* [chromedriver](https://chromedriver.chromium.org/downloads)
+* [Microsoft Edge Driver](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/#downloads)
+* [OperaDriver](https://github.com/operasoftware/operachromiumdriver/releases)
+
+Please note that currently only Firefox (geckodriver) has been tested.
 
 Extract the binary from the archive if needed and put it in `~/.cache/delilah/webdrivers/`.
 
@@ -190,7 +197,5 @@ The :pdf-contents key of the result stores the binary file as a byte array. You 
 ## Upcoming features
 
 * [ ] DEI
-  * [ ] Tests
   * [ ] PDF content parser
-  * [ ] Chromedriver support
 * [ ] HEDNO (ΔΕΔΔΗΕ) power cuts
