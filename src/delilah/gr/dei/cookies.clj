@@ -36,7 +36,7 @@
     cookies))
 
 (defn with-session-bake [{:keys [driver] :as ctx}]
-  (api/with-driver (:type driver :headless false) (dissoc driver :type) d
+  (api/with-driver (:type driver) (dissoc driver :type) d
     (bake d ctx)))
 
 (defn serve [{::dei/keys [user] :as ctx}]
