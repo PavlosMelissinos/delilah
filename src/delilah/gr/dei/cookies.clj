@@ -36,17 +36,18 @@
     cookies))
 
 (defn with-session-bake [{:keys [driver] :as ctx}]
-  (api/with-driver (:type driver) (dissoc driver :type) d
+  (api/with-driver (:type driver :headless false) (dissoc driver :type) d
     (bake d ctx)))
 
 (defn serve [{::dei/keys [user] :as ctx}]
-  (log/info "Loading cached cookies...")
-  (try
-    (-> ctx location slurp edn/read-string)
-    (catch Exception e
-      (do
-        (log/info (str "No cookies found for user" user " at " (location ctx)))
-        (with-session-bake ctx)))))
+  (let [loc (location ctx)]
+    (log/info (str "Loading cached cookies from " loc "..."))
+    (try
+      (-> loc slurp edn/read-string)
+      (catch Exception e
+        (do
+          (log/info (str "No cookies found for user" user " at " loc))
+          (with-session-bake ctx))))))
 
 (defn- as-kv-string [{:keys [name value] :as cookie}]
   (clojure.string/join "=" [name value]))
