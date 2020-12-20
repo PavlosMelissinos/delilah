@@ -6,7 +6,11 @@
             [clj-http.client :as http]
             [me.raynes.fs :as fs]
 
-            [delilah.gr.dei.core :as dei :refer [save-pdf! latest-bill extract]]))
+            [delilah.gr.dei.core :as dei]))
+
+(def save-pdf! dei/save-pdf!)
+(def latest-bill dei/latest-bill)
+(def extract dei/extract)
 
 (comment
   (require '(me.raynes.fs :as fs)
