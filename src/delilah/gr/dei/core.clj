@@ -1,84 +1,28 @@
 (ns delilah.gr.dei.core
   (:require [clojure.java.io :as io]
-            [clojure.tools.logging :as log]
+            [clojure.spec.alpha :as s]
+            [clojure.string :as str]
             [clojure.tools.reader.edn :as edn]
 
             [clj-http.client :as http]
-            [etaoin.api :as api]
-            [etaoin.keys :as k]
+            [hickory.core :as html]
             [java-time :as t]
             [me.raynes.fs :as fs]
+            [taoensso.timbre :as log]
 
             [delilah.common.parser :as cparser]
-            [delilah.gr.dei.parser :as parser]
-            [hickory.core :as html]))
-
-
-;;;;; START COOKIE STUFF ;;;;;
-
-(defn log-in [driver {:delilah.gr.dei/keys [user pass] :as ctx}]
-  (log/info "Firing up DEI sign-in page...")
-  (doto driver
-    (api/go "https://www.dei.gr/EBill/Login.aspx")
-    (api/wait-visible {:id :txtUserName}))
-  (log/info (format "Signing into DEI account as %s..." user))
-  (doto driver
-    (api/fill :txtUserName user)
-    (api/fill :txtPassword pass k/enter)
-    (api/wait-visible {:tag :div :fn/has-class "BillItem"}))
-  (log/info "Connected!")
-  driver)
-
-(defn cookie-file [{:delilah/keys [cache-dir provider]
-                    :delilah.gr.dei/keys [user]
-                    :as ctx}]
-  (let [cache-dir (fs/expand-home cache-dir)]
-    (clojure.string/join "/" [cache-dir "dei" "cookies" user])))
-
-(defn refresh-cookies [driver {:delilah/keys [cache-dir]
-                               :delilah.gr.dei/keys [user]
-                               :keys [force]
-                               :as ctx}]
-  (log/info "Getting fresh cookies from the oven...")
-  (let [cookies (-> (log-in driver ctx) api/get-cookies)]
-    (-> ctx cookie-file fs/parent fs/mkdirs)
-    (-> ctx cookie-file (spit cookies))
-    cookies))
-
-(defn with-refresh-cookies [{:keys [driver] :as ctx}]
-  (api/with-driver (:type driver) (dissoc driver :type) d
-    (refresh-cookies d ctx)))
-
-(defn load-cookies [ctx]
-  (log/info "Loading cached cookies...")
-  (try
-    (-> ctx cookie-file slurp edn/read-string)
-    (catch Exception e
-      (do
-        (log/info (str "Cookies not found at " (cookie-file ctx)))
-        (with-refresh-cookies ctx)))))
-
-(defn- format-cookie [{:keys [name value] :as cookie}]
-  (clojure.string/join "=" [name value]))
-
-(defn format-cookies [cookies]
-  (->> (map format-cookie cookies)
-       (clojure.string/join "; " )))
-
-;;;;; END COOKIE STUFF ;;;;;
-
-(defn download-dir [{:delilah/keys [cache-dir] :as ctx}]
-  (let [cache-dir (fs/expand-home cache-dir)]
-    (clojure.string/join "/" [cache-dir "dei" "downloads"])))
+            [delilah.gr.dei.cookies :as cookies]
+            [delilah.gr.dei :as ds]
+            [delilah.gr.dei.parser :as parser]))
 
 (defn dom [{:keys [cookies] :as ctx}]
   (let [endpoint  "https://ebill.dei.gr/Default.aspx"
                                         ;endpoint "https://ebill.dei.gr/Login.aspx"
-        cookies   (or cookies (load-cookies ctx))
+        cookies   (or cookies (cookies/serve ctx))
         resp      (http/post endpoint
                              {:redirect-strategy :lax
                               :content-type      :json
-                              :headers           {"Cookie" (format-cookies cookies)}})]
+                              :headers           {"Cookie" (cookies/->string cookies)}})]
     (-> resp :body cparser/parse)))
 
 (defn- fetch-file
@@ -87,7 +31,7 @@
    (fetch-file url nil))
   ([url cookies]
    (log/info (str "Fetching " url))
-   (let [headers (when cookies {:headers {"Cookie" (format-cookies cookies)}})
+   (let [headers (when cookies {:headers {"Cookie" (cookies/->string cookies)}})
          options (merge {:as               :byte-array
                          :throw-exceptions false}
                         headers)
@@ -97,32 +41,59 @@
 
 (defn- enrich-bill [{:keys [pdf-url] :as bill} {:keys [cookies] :as cfg}]
   (assoc bill
-         :download-dir (download-dir cfg)
          :pdf-contents (fetch-file pdf-url cookies)))
 
 (defn save-pdf!
   "Downloads and stores a pdf on disk."
-  [{:keys [pdf-contents download-dir dest-file] :as file}]
-  (let [filepath         (format "%s/%s" download-dir dest-file)
-        filepath-partial (str filepath ".part")]
+  [{:keys [pdf-contents] :as file} filepath]
+  (let [filepath-partial (str filepath ".part")]
+    (log/info (str "Saving pdf as " filepath))
     (io/delete-file filepath true)
     (io/delete-file filepath-partial true)
-    (io/copy pdf-contents (io/file download-dir dest-file))
+    (io/copy pdf-contents (io/file filepath))
+    (log/info (str "PDF saved!"))
     filepath))
+
+(defn latest-bill [{:keys [bills] :as data}]
+  (->> bills (sort-by :bill-date) reverse first))
 
 (defn scrape [{:keys [cache-dir cookies] :as ctx}]
   (let [data (try
                (-> ctx dom parser/parse)
                (catch Exception e
                  (do
-                   (log/info "Error parsing page! Cookies might be stale...")
-                   (with-refresh-cookies ctx)
-                   (log/info "Retrying to parse page...")
+                   (log/info "Failed to parse page! Cookies might be stale...")
+                   (cookies/with-session-bake ctx)
+                   (log/info "Parsing page (second attempt)...")
                    (-> ctx dom parser/parse))))
         cfg  {:cache-dir cache-dir
-              :cookies   (or cookies (load-cookies ctx))}]
+              :cookies   (or cookies (cookies/serve ctx))}]
     (update data :bills (fn [bills]
-                          (map #(enrich-bill % cfg) bills)))))
+                          (map #(enrich-bill % ctx) bills)))))
+
+(defn load-cfg [cfg]
+  (-> (io/resource "config.edn")
+      slurp
+      (edn/read-string)
+      (merge cfg)
+      (update-in [:driver :path-driver] fs/expand-home)
+      (update :delilah/cache-dir fs/expand-home)))
+
+(defn extract [{:keys [save-files?] :as cfg}]
+  (let [cfg           (load-cfg cfg)
+        data          (scrape cfg)
+        customer-code (:customer-code data)
+
+        download-dir  (str/join "/"
+                                [(:delilah/cache-dir cfg)
+                                 "dei"
+                                 "downloads"])]
+    (when save-files?
+      (doseq [{:keys [bill-date] :as bill} (:bills data)]
+        (save-pdf! bill (format "%s/%s_%s.pdf" download-dir customer-code bill-date))))
+    data))
+(s/fdef extract
+  :args (s/cat :cfg ::ds/cfg))
 
 (comment
   (def ctx (let [ctx-base (-> (io/resource "config.edn")
