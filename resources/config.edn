@@ -1,3 +1,4 @@
-{:delilah/services  [{:provider :dei
-                      :active   true}]
- :delilah/cache-dir "~/.cache/delilah"}
+{:delilah/cache-dir "~/.cache/delilah"
+ :driver            {:type        :firefox
+                     :path-driver "~/.cache/delilah/webdrivers/geckodriver"
+                     :headless    true}}

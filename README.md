@@ -142,27 +142,55 @@ Check the [API source code](src/delilah/gr/deddie/api.clj) for some more example
 
 ### DEI
 
-WIP - still lacking basic features
+#### Setup
 
-## Features
+Download a webdriver of your choice. Please note that currently only Firefox (geckodriver) is supported.
 
-* [ ] Tests
-* [ ] Web driver support
-  * [X] Firefox
-  * [ ] Chromium
-* [ ] Power APIs
-  * [X] DEI
-    * [X] log in
-    * [X] get customer info
-    * [X] get property info
-    * [X] get available bills
-    * [X] download bill(s) in pdf form
-    * [ ] Tests and specs
-    * [ ] parse pdf
+Extract the binary from the archive if needed and put it in `~/.cache/delilah/webdrivers/`.
+
+Require dei API
+
+```clojure
+(:require [delilah.gr.dei.api :as dei])
+```
+
+#### Extract account data
+
+```clojure
+(dei/extract {:delilah.gr.dei/user "foo" :delilah.gr.dei/pass "bar"})
+```
+
+> :warning: The pdf blobs are printed as vectors and can be really long, so use `(set! *print-length* 20)` to keep the output readable
+
+#### Download the bills in pdf form
+
+Approach #1: Specify it when calling the extract function
+
+```clojure
+(dei/extract {:delilah.gr.dei/user "foo" :delilah.gr.dei/pass "bar" :save-files? true})
+```
+
+Approach #2: Download just the latest bill
+
+```clojure
+(-> (dei/extract {:delilah.gr.dei/user "foo" :delilah.gr.dei/pass "bar"})
+    dei/latest-bill
+    (dei/save-pdf! download-path))
+```
+
+Approach #3: Full manual mode
+
+```clojure
+(let [data (dei/extract {:delilah.gr.dei/user "foo" :delilah.gr.dei/pass "bar"})]
+  ; Choose a random bill
+  (rand-nth (:bills data)))
+```
+The :pdf-contents key of the result stores the binary file as a byte array. You can use `clojure.java.io/copy` to save it to disk.
+
+## Upcoming features
+
+* [ ] DEI
+  * [ ] Tests
+  * [ ] PDF content parser
+  * [ ] Chromedriver support
 * [ ] HEDNO (ΔΕΔΔΗΕ) power cuts
-    * [X] load page
-    * [X] get outage warnings for prefecture/municipality combination
-    * [X] parse raw text to get useful information such as street names affected by the outage
-    * [ ] retrieve all result pages
-    * [X] Tests
-    * [ ] specs
