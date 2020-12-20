@@ -42,6 +42,11 @@
 (defn- enrich-bill [{:keys [pdf-url] :as bill} {:keys [cookies] :as cfg}]
   (assoc bill
          :pdf-contents (fetch-file pdf-url cookies)))
+(s/fdef enrich-bill
+  :args (s/cat :bill (s/keys
+                      :req-un [::pdf-url])
+               :cfg  (s/keys
+                      :req-un [::cookies])))
 
 (defn save-pdf!
   "Downloads and stores a pdf on disk."
@@ -69,7 +74,7 @@
         cfg  {:cache-dir cache-dir
               :cookies   (or cookies (cookies/serve ctx))}]
     (update data :bills (fn [bills]
-                          (map #(enrich-bill % ctx) bills)))))
+                          (map #(enrich-bill % cfg) bills)))))
 
 (defn load-cfg [cfg]
   (-> (io/resource "config.edn")
