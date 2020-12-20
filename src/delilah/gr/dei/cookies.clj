@@ -5,9 +5,11 @@
             [etaoin.api :as api]
             [etaoin.keys :as k]
             [me.raynes.fs :as fs]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
 
-(defn log-in [driver {:ds/keys [user pass] :as ctx}]
+            [delilah.gr.dei :as dei]))
+
+(defn log-in [driver {::dei/keys [user pass] :as ctx}]
   (log/info "Firing up DEI sign-in page...")
   (doto driver
     (api/go "https://www.dei.gr/EBill/Login.aspx")
@@ -21,11 +23,10 @@
   driver)
 
 (defn location [{:delilah/keys [cache-dir]
-                 :ds/keys [user]
+                 ::dei/keys [user]
                  :as ctx}]
   (let [cache-dir (fs/expand-home cache-dir)]
     (clojure.string/join "/" [cache-dir "dei" "cookies" user])))
-(s/fdef location)
 
 (defn- bake [driver ctx]
   (log/info "Getting fresh cookies from the oven...")
@@ -38,13 +39,13 @@
   (api/with-driver (:type driver) (dissoc driver :type) d
     (bake d ctx)))
 
-(defn serve [ctx]
+(defn serve [{::dei/keys [user] :as ctx}]
   (log/info "Loading cached cookies...")
   (try
     (-> ctx location slurp edn/read-string)
     (catch Exception e
       (do
-        (log/info (str "Cookies not found at " (location ctx)))
+        (log/info (str "No cookies found for user" user " at " (location ctx)))
         (with-session-bake ctx)))))
 
 (defn- as-kv-string [{:keys [name value] :as cookie}]
