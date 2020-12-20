@@ -48,7 +48,8 @@
    :pdf-url   (pdf-url fragment)})
 
 (defn bills [fragment]
-  (map bill fragment))
+  (let [fragment (distinct (map #(dissoc % :content) fragment))]
+    (map bill fragment)))
 
 
 ;;;;;;;;;;;;;;; Selectors ;;;;;;;;;;;;;;;
