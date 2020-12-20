@@ -157,7 +157,7 @@ Require dei API
 #### Extract account data
 
 ```clojure
-(dei/extract {:user "foo" :pass "bar"})
+(dei/extract {:delilah.gr.dei/user "foo" :delilah.gr.dei/pass "bar"})
 ```
 
 > :warning: The pdf blobs are printed as vectors and can be really long, so use `(set! *print-length* 20)` to keep the output readable
@@ -167,21 +167,22 @@ Require dei API
 Approach #1: Specify it when calling the extract function
 
 ```clojure
-(dei/extract {:user "foo" :pass "bar" :save-files? true})
+(dei/extract {:delilah.gr.dei/user "foo" :delilah.gr.dei/pass "bar" :save-files? true})
 ```
 
 Approach #2: Download just the latest bill
 
 ```clojure
-(let [data (dei/extract {:user "foo" :pass "bar"})]
-  (-> data dei/latest-bill dei/save-pdf!))
+(-> (dei/extract {:delilah.gr.dei/user "foo" :delilah.gr.dei/pass "bar"})
+    dei/latest-bill
+    (dei/save-pdf! download-path))
 ```
 
 Approach #3: Full manual mode
 
 ```clojure
-(let [data  (dei/extract {:user "foo" :pass "bar"})]
-  ; Choose the bill you want
+(let [data (dei/extract {:delilah.gr.dei/user "foo" :delilah.gr.dei/pass "bar"})]
+  ; Choose a random bill
   (rand-nth (:bills data)))
 ```
 The :pdf-contents key of the result stores the binary file as a byte array. You can use `clojure.java.io/copy` to save it to disk.
