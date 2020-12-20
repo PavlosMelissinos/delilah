@@ -1,80 +1,121 @@
 (ns delilah.gr.dei.core
   (:require [clojure.java.io :as io]
-            [clojure.tools.logging :as log]
+            [clojure.spec.alpha :as s]
+            [clojure.string :as str]
             [clojure.tools.reader.edn :as edn]
 
-            [etaoin.api :as api]
-            [etaoin.keys :as k]
+            [clj-http.client :as http]
+            [hickory.core :as html]
             [java-time :as t]
+            [me.raynes.fs :as fs]
+            [taoensso.timbre :as log]
 
             [delilah.common.parser :as cparser]
+            [delilah.gr.dei.cookies :as cookies]
+            [delilah.gr.dei :as ds]
             [delilah.gr.dei.parser :as parser]))
 
-(defn log-in [driver {:keys [user pass] :as ctx}]
-  (log/info "Firing up DEI sign-in page...")
-  (doto driver
-    (api/go "https://www.dei.gr/EBill/Login.aspx")
-    (api/wait-visible {:id :txtUserName}))
-  (log/info (format "Signing into DEI account as %s..." user))
-  (doto driver
-    (api/fill :txtUserName user)
-    (api/fill :txtPassword pass k/enter)
-    (api/wait-visible {:tag :div :fn/has-class "BillItem"}))
-  (log/info "Connected!")
-  driver)
+(defn dom [{:keys [cookies] :as ctx}]
+  (let [endpoint  "https://ebill.dei.gr/Default.aspx"
+                                        ;endpoint "https://ebill.dei.gr/Login.aspx"
+        cookies   (or cookies (cookies/serve ctx))
+        resp      (http/post endpoint
+                             {:redirect-strategy :lax
+                              :content-type      :json
+                              :headers           {"Cookie" (cookies/->string cookies)}})]
+    (-> resp :body cparser/parse)))
 
-(defn ->dom [driver ctx]
-  (->> (log-in driver ctx)
-       api/get-source
-       cparser/parse))
+(defn- fetch-file
+  "Makes an HTTP request and fetches a binary object."
+  ([url]
+   (fetch-file url nil))
+  ([url cookies]
+   (log/info (str "Fetching " url))
+   (let [headers (when cookies {:headers {"Cookie" (cookies/->string cookies)}})
+         options (merge {:as               :byte-array
+                         :throw-exceptions false}
+                        headers)
+         resp    (http/get url options)]
+     (if (= (:status resp) 200)
+       (:body resp)))))
 
-(defn download-bill [driver {:keys [pdf-url download-dir dest-file] :as bill}]
-  (let [filepath         (format "%s/%s" download-dir dest-file)
-        filepath-partial (str filepath ".part")]
+(defn- enrich-bill [{:keys [pdf-url] :as bill} {:keys [cookies] :as cfg}]
+  (assoc bill
+         :pdf-contents (fetch-file pdf-url cookies)))
+(s/fdef enrich-bill
+  :args (s/cat :bill (s/keys
+                      :req-un [::pdf-url])
+               :cfg  (s/keys
+                      :req-un [::cookies])))
+
+(defn save-pdf!
+  "Downloads and stores a pdf on disk."
+  [{:keys [pdf-contents] :as file} filepath]
+  (let [filepath-partial (str filepath ".part")]
+    (log/info (str "Saving pdf as " filepath))
     (io/delete-file filepath true)
     (io/delete-file filepath-partial true)
-    (log/info (format "Downloading %s to %s" pdf-url filepath))
-    (io/make-parents filepath)
-    (api/go driver pdf-url)
-    (api/wait-predicate #(and (.exists (io/file filepath))
-                              (not (.exists (io/file filepath-partial)))))
+    (io/copy pdf-contents (io/file filepath))
+    (log/info (str "PDF saved!"))
     filepath))
 
-#_(defn download-bill-for-date [driver dom date]
-  (->> dom
-       parser/bills
-       (filter #(= (:bill-date %) (t/local-date date)))))
+(defn latest-bill [{:keys [bills] :as data}]
+  (->> bills (sort-by :bill-date) reverse first))
 
-(defn collect-browser-data [{:keys [download-dir] :as ctx}]
-  (log/info "Loading web driver...")
-  (api/with-driver
-    :firefox {:headless true
-              :path-driver "resources/webdrivers/geckodriver" ;TODO: not working with io/resource, fix
-              :load-strategy :none
-              :download-dir download-dir} driver
-    (let [data  (parser/parse (->dom driver ctx))
-          bills (map #(assoc % :download-dir download-dir) (:bills data))
-          data  (assoc data :bills bills)]
-      (log/info "Downloading bill files")
-      (doseq [bill bills]
-        (download-bill driver bill)))))
+(defn scrape [{:keys [cache-dir cookies] :as ctx}]
+  (let [data (try
+               (-> ctx dom parser/parse)
+               (catch Exception e
+                 (do
+                   (log/info "Failed to parse page! Cookies might be stale...")
+                   (cookies/with-session-bake ctx)
+                   (log/info "Parsing page (second attempt)...")
+                   (-> ctx dom parser/parse))))
+        cfg  {:cache-dir cache-dir
+              :cookies   (or cookies (cookies/serve ctx))}]
+    (update data :bills (fn [bills]
+                          (map #(enrich-bill % cfg) bills)))))
 
-(defn do-task [ctx]
-  (let [browser-data (collect-browser-data ctx)]
-    browser-data
-    ;TODO: parse pdfs
-  ))
+(defn load-cfg [cfg]
+  (-> (io/resource "config.edn")
+      slurp
+      (edn/read-string)
+      (merge cfg)
+      (update-in [:driver :path-driver] fs/expand-home)
+      (update :delilah/cache-dir fs/expand-home)))
+
+(defn extract [{:keys [save-files?] :as cfg}]
+  (let [cfg           (load-cfg cfg)
+        data          (scrape cfg)
+        customer-code (:customer-code data)
+
+        download-dir  (str/join "/"
+                                [(:delilah/cache-dir cfg)
+                                 "dei"
+                                 "downloads"])]
+    (when save-files?
+      (doseq [{:keys [bill-date] :as bill} (:bills data)]
+        (save-pdf! bill (format "%s/%s_%s.pdf" download-dir customer-code bill-date))))
+    data))
+(s/fdef extract
+  :args (s/cat :cfg ::ds/cfg))
 
 (comment
   (def ctx (let [ctx-base (-> (io/resource "config.edn")
                               slurp
-                              (edn/read-string))
-                 secrets  (-> (io/resource "secrets.edn")
-                              slurp
                               (edn/read-string)
-                              :dei)]
+                              (update-in [:driver :path-driver] fs/expand-home)
+                              (update :delilah/cache-dir fs/expand-home))
+                 secrets  (-> "~/.config/delilah/secrets.edn"
+                              fs/expand-home
+                              slurp
+                              (edn/read-string))]
              (merge ctx-base secrets)))
-  (def driver (api/firefox {:headless false
-                            :path-driver "resources/webdrivers/geckodriver"}))
-  (def dom (->dom driver ctx))
-  (def data (do-task ctx)))
+
+  (def driver-spec {:headless true
+                    :path-driver "resources/webdrivers/geckodriver"})
+
+  (api/with-driver :firefox driver-spec d
+    (refresh-cookies d ctx))
+
+  (scrape ctx))
