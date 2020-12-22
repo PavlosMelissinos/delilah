@@ -1,10 +1,10 @@
-{:paths    ["src"
-            "components/common_parser/src"
+{:paths    ["components/common_parser/src"
 
             "bases/deddie/resources"
             "bases/deddie/src"
             "bases/dei/resources"
-            "bases/dei/src"]
+            "bases/dei/src"
+            "bases/delilah/src"]
  :jvm-opts ["-Duser.timezone=UTC"
             "-XX:-OmitStackTraceInFastThrow"]
  :deps     {org.clojure/clojure                 {:mvn/version "1.10.1"}

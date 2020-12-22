@@ -1,6 +1,7 @@
 {:paths    ["../../components/common_parser/src"
 
             "../../bases/deddie/src"
+            "../../bases/delilah/src"
             "../../bases/deddie/resources"]
  :jvm-opts ["-Duser.timezone=UTC"
             "-XX:-OmitStackTraceInFastThrow"]
