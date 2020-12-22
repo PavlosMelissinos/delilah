@@ -36,4 +36,4 @@
                                  "bases/dei/test-resources"
                                  "bases/dei/test"]
                    :extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}}
-                   :main-opts   ["-m" "kaocha.runner" "--config-file" "kaocha.edn"]}}}
+                   :main-opts   ["-m" "kaocha.runner" "--config-file" "development/kaocha.edn"]}}}
