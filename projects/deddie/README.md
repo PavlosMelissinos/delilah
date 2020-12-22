@@ -2,6 +2,13 @@
 
 This is a [delilah](/README.md) component that retrieves announced upcoming outages in Greece, for a certain prefecture/municipality.
 
+### HEDNO
+
+The **H**ellenic **E**lectricity **D**istribution **N**etwork **O**perator (**Δ**ιαχειριστής **Ε**λληνικού **Δ**ικτύου **Δ**ιανομής **Η**λεκτρικής **Ε**νέργειας) is the operator of the greek power distribution network.
+
+At [this endpoint](https://siteapps.deddie.gr/Outages2Public), you can select an area (prefecture and municipality and it will tell you if there are any scheduled outages in the next few days)
+
+
 ## Getting started
 
 First [include delilah to your project](/README.md)

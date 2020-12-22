@@ -6,7 +6,9 @@
 
 Status: Alpha, api still subject to change
 
-Delilah is an agent that retrieves information about power services
+Delilah is an agent that retrieves information about power services.
+
+This library provides helper functions that parse data from power company websites and turn them into structured information. Use cases involve retrieving your latest electricity bill or checking out whether there's a planned power outage in your area.
 
 ## Setup
 
@@ -17,75 +19,16 @@ Add the following entry to your deps.edn file
                          :sha ???}]}
 ```
 
-## Usage
+## Projects
 
-### DEDDIE
+Delilah is structured as a monorepo and is heavily based on [Polylith](https://polylith.gitbook.io/polylith).
 
-[Documentation](projects/deddie/README.md)
+It is comprised of the following projects (more to come):
 
-### DEI
+### deddie
 
-#### Setup
+This project informs you of any power outages in your area (prefecture or municipality). For more information, check out the project [here](projects/deddie)
 
-Download a webdriver of your choice:
+### dei
 
-* [geckodriver (Firefox, default)](https://github.com/mozilla/geckodriver/releases)
-* [chromedriver](https://chromedriver.chromium.org/downloads)
-* [Microsoft Edge Driver](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/#downloads)
-* [OperaDriver](https://github.com/operasoftware/operachromiumdriver/releases)
-
-Please note that currently only Firefox (geckodriver) has been tested and is used when no webdriver is explicitly specified.
-
-Extract the binary from the archive if needed and put it in `~/.cache/delilah/webdrivers/`.
-
-Require dei API
-
-```clojure
-(:require [delilah.gr.dei.api :as dei])
-```
-
-#### Extract account data
-
-```clojure
-(dei/extract {:delilah.gr.dei/user "foo", :delilah.gr.dei/pass "bar"})
-```
-
-> :warning: The pdf blobs are printed as vectors and can be really long, so use `(set! *print-length* x)`
-> before running delilah.gr.dei.api/extract in the REPL to limit the size of the output
-
-
-#### Use chromedriver
-
-```clojure
-(let [driver {:type :chrome
-              :path-driver "path/to/chromedriver/binary"
-              :headless true}]
-  (dei/extract {:delilah.gr.dei/user "foo", :delilah.gr.dei/pass "bar", :driver driver}
-```
-
-#### Download the bills in pdf form
-
-Approach #1: Specify it when calling the extract function
-
-```clojure
-(dei/extract {:delilah.gr.dei/user "foo", :delilah.gr.dei/pass "bar", :save-files? true})
-```
-
-Approach #2: Download just the latest bill
-
-```clojure
-(-> (dei/extract {:delilah.gr.dei/user "foo", :delilah.gr.dei/pass "bar"})
-    dei/latest-bill
-    (dei/save-pdf! download-path))
-```
-
-Approach #3: Full manual mode
-
-```clojure
-(let [data (dei/extract {:delilah.gr.dei/user "foo", :delilah.gr.dei/pass "bar"})]
-  ; Choose a random bill
-  (rand-nth (:bills data)))
-```
-The :pdf-contents key of the result stores the binary file as a byte array. You can use `clojure.java.io/copy` to save it to disk.
-
-Project structure inspired by [Polylith](https://polylith.gitbook.io/polylith)
+This project allows you to retrieve your electricity bills as well as some dei related information about your property. For more information, check out the project [here](projects/dei)
