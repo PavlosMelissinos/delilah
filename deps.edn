@@ -31,9 +31,5 @@
                                  lambdaisland/kaocha         {:mvn/version "1.0.732"}
                                  rewrite-clj/rewrite-clj     {:mvn/version "0.6.1"}
                                  spec-provider/spec-provider {:mvn/version "0.4.14"}}}
-            :test {:extra-paths ["bases/deddie/test-resources"
-                                 "bases/deddie/test"
-                                 "bases/dei/test-resources"
-                                 "bases/dei/test"]
-                   :extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}}
+            :test {:extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}}
                    :main-opts   ["-m" "kaocha.runner" "--config-file" "development/kaocha.edn"]}}}
