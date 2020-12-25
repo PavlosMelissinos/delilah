@@ -32,4 +32,8 @@
                                  rewrite-clj/rewrite-clj     {:mvn/version "0.6.1"}
                                  spec-provider/spec-provider {:mvn/version "0.4.14"}}}
             :test {:extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}}
-                   :main-opts   ["-m" "kaocha.runner" "--config-file" "development/kaocha.edn"]}}}
+                   :main-opts   ["-m" "kaocha.runner" "--config-file" "development/kaocha.edn"]}
+
+            :lint/kondo
+            {:extra-deps {clj-kondo/clj-kondo {:mvn/version "RELEASE"}}
+             :main-opts  ["-m" "clj-kondo.main" "--lint" "bases" "--lint" "components" "--lint" "development"]}}}
