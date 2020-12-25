@@ -1,35 +1,30 @@
-{:paths    ["components/common_parser/src"
+{:paths    ["../../components/common_parser/src"
 
-            "bases/deddie/resources"
-            "bases/deddie/src"
-            "bases/dei/resources"
-            "bases/dei/src"
-            "bases/delilah/src"]
+            "../../bases/dei/resources"
+            "../../bases/dei/src"
+            "../../bases/delilah/src"]
  :jvm-opts ["-Duser.timezone=UTC"
             "-XX:-OmitStackTraceInFastThrow"]
  :deps     {org.clojure/clojure                 {:mvn/version "1.10.1"}
             org.clojure/tools.logging           {:mvn/version "1.1.0"}
+            com.taoensso/timbre                 {:mvn/version "5.1.0"}
             expound/expound                     {:mvn/version "0.8.6"}
             clojure.java-time/clojure.java-time {:mvn/version "0.3.2"}
             me.raynes/fs                        {:mvn/version "1.4.6"}
-            com.taoensso/timbre                 {:mvn/version "5.1.0"}
 
             ;; web
             clj-http/clj-http                         {:mvn/version "3.10.0"}
             hickory/hickory                           {:mvn/version "0.7.1"}
             hickory-css-selector/hickory-css-selector {:git/url "https://github.com/taylorwood/hickory-css-selector"
-                                                       :sha "ecdaf9e9ed4845cf3ed6df35c1f95f6b17812117"}
-            etaoin/etaoin                             {:mvn/version "0.4.0"}
-            org.eclipse.jetty/jetty-util              {:mvn/version "9.4.35.v20201120"}}
- :aliases  {:dev  {:extra-paths ["development/src"
+                                                       :sha     "ecdaf9e9ed4845cf3ed6df35c1f95f6b17812117"}
+            etaoin/etaoin                             {:mvn/version "0.4.0"}}
+ :aliases  {:dev  {:extra-paths ["../../development/src"
 
-                                 "bases/deddie/test-resources"
-                                 "bases/deddie/test"
-                                 "bases/dei/test-resources"
-                                 "bases/dei/test"]
+                                 "../../bases/dei/test-resources"
+                                 "../../bases/dei/test"]
                    :extra-deps  {org.clojure/tools.namespace {:mvn/version "0.2.11"}
                                  lambdaisland/kaocha         {:mvn/version "1.0.732"}
                                  rewrite-clj/rewrite-clj     {:mvn/version "0.6.1"}
                                  spec-provider/spec-provider {:mvn/version "0.4.14"}}}
             :test {:extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}}
-                   :main-opts   ["-m" "kaocha.runner" "--config-file" "development/kaocha.edn"]}}}
+                   :main-opts   ["-m" "kaocha.runner" "--config-file" "kaocha.edn"]}}}

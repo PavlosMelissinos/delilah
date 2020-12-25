@@ -1,0 +1,20 @@
+#kaocha/v1
+{:tests                              [{:id                      :dei
+                                       :test-paths              ["bases/dei/test"]
+                                       :source-paths            ["bases/dei/src" "components/common_parser/src"]
+                                       :ns-patterns             ["-test$"]}
+                                      {:id                      :deddie
+                                       :test-paths              ["bases/deddie/test"]
+                                       :source-paths            ["bases/deddie/src" "components/common_parser/src"]
+                                       :ns-patterns             ["-test$"]}]
+ :color?                             true
+ :kaocha/reporter                    [kaocha.report/documentation]
+ :plugins                            [:kaocha.plugin/hooks
+                                      :kaocha.plugin/notifier
+                                      :kaocha.plugin/profiling
+                                      :kaocha.plugin/print-invocations
+                                      :kaocha.plugin/orchestra
+                                      #_kaocha.plugin/preloads]
+ :kaocha.plugin/randomize            true
+ :kaocha.plugin.profiling/profiling? true
+ :kaocha.plugin.profiling/count      5}

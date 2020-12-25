@@ -7,8 +7,7 @@
             [clj-http.client :as cl]
             [java-time :as t]
 
-            [delilah.common.parser :as cparser]
-            [delilah :as d])
+            [delilah.common.parser :as cparser])
   (:import [org.eclipse.jetty.util UrlEncoded MultiMap]))
 
 (defn query-map [query]
