@@ -1,5 +1,6 @@
 (ns delilah.gr.dei.parser
-  (:require [java-time :as t]
+  (:require [clojure.string :as str]
+            [java-time :as t]
             [hickory.select :as hs]
             [hickory-css-selectors :as hcs]
             [delilah :as d]))
@@ -29,7 +30,7 @@
       first
       :content
       first
-      clojure.string/trim))
+      str/trim))
 
 
 ;;; bills

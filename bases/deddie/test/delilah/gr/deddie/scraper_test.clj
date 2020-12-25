@@ -1,6 +1,6 @@
 (ns delilah.gr.deddie.scraper-test
   (:require [clojure.java.io :as io]
-            [clojure.test :refer :all]
+            [clojure.test :refer [deftest is testing]]
             [clojure.tools.reader.edn :as edn]
 
             [hickory.select :as hs]
@@ -87,8 +87,8 @@
                   :note-id        "474",
                   :cause          "Κατασκευές"
                   :affected-areas-raw "Μονά/Ζυγά οδός:ΒΟΣΠΟΡΟΥ απο κάθετο: ΒΟΣΠΟΡΟΥ Ν0 59 έως κάθετο: ΜΕΤΡΩΝ από: 08:00 πμ έως: 01:00 μμ\nΜονά/Ζυγά οδός:ΦΙΛΙΠΠΟΥΠΟΛΕΩΣ απο κάθετο: ΜΕΤΡΩΝ έως κάθετο: ΣΩΚΙΩΝ από: 08:00 πμ έως: 01:00 μμ\nΜονά/Ζυγά οδός:ΣΤΑΥΡΟΥΠΟΛΕΩΣ απο κάθετο: ΣΩΚΙΩΝ έως κάθετο: ΣΤΡ. ΝΙΔΕΡ από: 08:00 πμ έως: 01:00 μμ\nΜονά/Ζυγά οδός:ΣΩΚΙΩΝ απο κάθετο: ΣΤΡ. ΝΙΔΕΡ  έως κάθετο: ΔΑΡΔΑΝΕΛΛΙΩΝ από: 08:00 πμ έως: 01:00 μμ"}]]
-    (with-redefs [parser/str->time     (fn [a & b] a)
-                  parser/str->datetime (fn [a & b] a)]
+    (with-redefs [parser/str->time     (fn [a & _] a)
+                  parser/str->datetime (fn [a & _] a)]
       (is (= outages
              (sut/outages dom))))))
 
@@ -97,7 +97,7 @@
                      io/resource
                      slurp
                      edn/read-string)]
-    (with-redefs [parser/str->time     (fn [a & b] a)
-                  parser/str->datetime (fn [a & b] a)]
+    (with-redefs [parser/str->time     (fn [a & _] a)
+                  parser/str->datetime (fn [a & _] a)]
       (is (= outages2
              (map #(dissoc % :affected-areas-raw) (sut/outages dom2)))))))

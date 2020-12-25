@@ -1,7 +1,6 @@
 (ns dev
   (:refer-clojure :exclude [update])
   (:require [clojure.tools.namespace.repl :as ns-tools]
-            [clojure.test :as test]
             [clojure.spec.test.alpha :as stest]
             [kaocha.repl :as kaocha]))
 

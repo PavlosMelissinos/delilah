@@ -11,6 +11,8 @@
 
 
 (comment
+  (require '[me.raynes/fs :as fs]
+           '[clojure.tools.reader.edn :as edn])
   (def ctx (-> "~/.config/delilah/secrets.edn"
                fs/expand-home
                slurp

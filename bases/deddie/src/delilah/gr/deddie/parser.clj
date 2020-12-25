@@ -5,10 +5,8 @@
             [clojure.walk :as walk]
 
             [clj-http.client :as cl]
-            [java-time :as t]
-
-            [delilah.common.parser :as cparser])
-  (:import [org.eclipse.jetty.util UrlEncoded MultiMap]))
+            [java-time :as t])
+  (:import [org.eclipse.jetty.util UrlEncoded]))
 
 (defn query-map [query]
   (->> query
@@ -68,7 +66,6 @@
   ([time]
    (str->time time ""))
   ([time formatter]
-   (def time-glb time)
    (let [formatted-timestr (-> time str/trim str/upper-case latin-timestr)]
      (cond
        (not-empty formatter)
@@ -87,8 +84,9 @@
                :binary (s/cat :time string? :formatter string?))
   :ret t/local-time?)
 
-(defn deaccent [str]
+(defn deaccent
   "Remove accent from string"
+  [str]
   ;; http://www.matt-reid.co.uk/blog_post.php?id=69
   (let [normalized (java.text.Normalizer/normalize str java.text.Normalizer$Form/NFD)]
     (clojure.string/replace normalized #"\p{InCombiningDiacriticalMarks}+" "")))
@@ -141,7 +139,7 @@
     (or (str/starts-with? area-text "Μονά")
         (str/starts-with? area-text "Ζυγά"))
     (let [parse-times-fn (fn [time]
-                           (when (not (empty? time))
+                           (when (seq time)
                              (str->time time)))]
       (-> area-text
           parse-area-text

@@ -1,10 +1,8 @@
 (ns delilah.gr.deddie.api
   (:require [clojure.spec.alpha :as s]
-            [clojure.tools.logging :as log]
 
+            [delilah.gr.deddie]
             [delilah.common.parser :as cparser]
-            [delilah.gr.deddie :as deddie]
-            [delilah.gr.deddie.parser :as parser]
             [delilah.gr.deddie.scraper :as scraper]))
 
 (def endpoint "https://siteapps.deddie.gr/Outages2Public")
@@ -60,7 +58,7 @@
 (s/fdef all-municipalities
   :ret (s/coll-of :deddie/municipality))
 
-(defn dom [{:keys [prefecture municipality page] :as ctx}]
+(defn dom [{:keys [prefecture municipality page]}]
   (let [page            (or page 1)
         prefecture-id   (if (number? prefecture)
                           prefecture
@@ -92,34 +90,34 @@
 
 
 (comment
-  (def active-prefecture (-> (dom {:prefecture 10}) scraper/prefecture))
-  (def active-prefecture (-> (dom {:prefecture "ΑΤΤΙΚΗΣ"}) scraper/prefecture))
+  (def active-prefecture-1 (-> (dom {:prefecture 10}) scraper/prefecture))
+  (def active-prefecture-2 (-> (dom {:prefecture "ΑΤΤΙΚΗΣ"}) scraper/prefecture))
 
   (def all-prefectures (prefectures))
 
-  (def active-municipality (scraper/municipality (dom 10)))
-  (def active-municipality (scraper/municipality (dom 10 "ΑΘΗΝΑΙΩΝ")))
-  (def active-municipality (scraper/municipality (dom "ΘΕΣΣΑΛΟΝΙΚΗΣ" "ΘΕΣΣΑΛΟΝΙΚΗΣ")))
+  (def active-municipality-1 (scraper/municipality (dom {:prefecture 10})))
+  (def active-municipality-2 (scraper/municipality (dom {:prefecture 10 :municipality "ΑΘΗΝΑΙΩΝ"})))
+  (def active-municipality-3 (scraper/municipality (dom {:prefecture "ΘΕΣΣΑΛΟΝΙΚΗΣ" :municipality "ΘΕΣΣΑΛΟΝΙΚΗΣ"})))
 
-  (def municipalities (municipalities 23))
-  (def municipalities (municipalities "ΘΕΣΣΑΛΟΝΙΚΗΣ"))
+  (def municipalities-1 (municipalities 23))
+  (def municipalities-2 (municipalities "ΘΕΣΣΑΛΟΝΙΚΗΣ"))
 
-  (def all-municipalities (all-municipalities))
+  (def municipalities-all (all-municipalities))
 
   ; Upcoming outages within the municipality of Athens
-  (def outages-map (outages 10 112))
-  (def outages-map (outages "ΑΤΤΙΚΗΣ" "ΑΘΗΝΑΙΩΝ"))
+  (def outages-map-1 (outages 10 112))
+  (def outages-map-2 (outages "ΑΤΤΙΚΗΣ" "ΑΘΗΝΑΙΩΝ"))
 
   ; Upcoming outages within the entire prefecture of Thessaloniki
-  (def outages-map (outages 23))
-  (def outages-map (outages "ΘΕΣΣΑΛΟΝΙΚΗΣ"))
+  (def outages-map-3 (outages 23))
+  (def outages-map-4 (outages "ΘΕΣΣΑΛΟΝΙΚΗΣ"))
 
   ; Upcoming outages within the municipality of Thessaloniki
-  (def outages-map (outages 23 454))
-  (def outages-map (outages "ΘΕΣΣΑΛΟΝΙΚΗΣ" "ΘΕΣΣΑΛΟΝΙΚΗΣ"))
+  (def outages-map-5 (outages 23 454))
+  (def outages-map-6 (outages "ΘΕΣΣΑΛΟΝΙΚΗΣ" "ΘΕΣΣΑΛΟΝΙΚΗΣ"))
 
-  (def num-pages (-> (dom {:prefecture "ΑΤΤΙΚΗΣ"})
+  (def num-pages-7 (-> (dom {:prefecture "ΑΤΤΙΚΗΣ"})
                      scraper/num-pages))
 
-  (def num-pages (-> (dom {:prefecture "ΘΕΣΣΑΛΟΝΙΚΗΣ"})
+  (def num-pages-8 (-> (dom {:prefecture "ΘΕΣΣΑΛΟΝΙΚΗΣ"})
                      scraper/num-pages)))
