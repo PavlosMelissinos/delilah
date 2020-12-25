@@ -1,12 +1,5 @@
 (ns delilah.gr.dei.api
-  (:require [clojure.java.io :as io]
-            [clojure.spec.alpha :as s]
-            [clojure.tools.reader.edn :as edn]
-
-            [clj-http.client :as http]
-            [me.raynes.fs :as fs]
-
-            [delilah.gr.dei.core :as dei]))
+  (:require [delilah.gr.dei.core :as dei]))
 
 (def save-pdf! dei/save-pdf!)
 (def latest-bill dei/latest-bill)

@@ -1,11 +1,8 @@
 (ns delilah.gr.dei.parser-test
-  (:require [clojure.test :refer :all]
-            [clojure.java.io :as io]
-            [clojure.tools.reader.edn :as edn]
+  (:require [clojure.test :refer [deftest is]]
 
             [java-time :as t]
 
-            [delilah :as d]
             [delilah.gr.dei.parser :as sut]))
 
 (deftest test-format-date

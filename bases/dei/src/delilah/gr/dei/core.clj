@@ -5,8 +5,6 @@
             [clojure.tools.reader.edn :as edn]
 
             [clj-http.client :as http]
-            [hickory.core :as html]
-            [java-time :as t]
             [me.raynes.fs :as fs]
             [taoensso.timbre :as log]
 
@@ -36,10 +34,10 @@
                          :throw-exceptions false}
                         headers)
          resp    (http/get url options)]
-     (if (= (:status resp) 200)
+     (when (= (:status resp) 200)
        (:body resp)))))
 
-(defn- enrich-bill [{:keys [pdf-url] :as bill} {:keys [cookies] :as cfg}]
+(defn- enrich-bill [{:keys [pdf-url] :as bill} {:keys [cookies]}]
   (assoc bill
          :pdf-contents (fetch-file pdf-url cookies)))
 (s/fdef enrich-bill
@@ -50,7 +48,7 @@
 
 (defn save-pdf!
   "Downloads and stores a pdf on disk."
-  [{:keys [pdf-contents] :as file} filepath]
+  [{:keys [pdf-contents]} filepath]
   (let [filepath-partial (str filepath ".part")]
     (log/info (str "Saving pdf as " filepath))
     (io/delete-file filepath true)
@@ -59,18 +57,17 @@
     (log/info (str "PDF saved!"))
     filepath))
 
-(defn latest-bill [{:keys [bills] :as data}]
+(defn latest-bill [{:keys [bills]}]
   (->> bills (sort-by :bill-date) reverse first))
 
 (defn scrape [{:keys [cache-dir cookies] :as ctx}]
   (let [data (try
                (-> ctx dom parser/parse)
-               (catch Exception e
-                 (do
-                   (log/info "Failed to parse page! Cookies might be stale...")
-                   (cookies/with-session-bake ctx)
-                   (log/info "Parsing page (second attempt)...")
-                   (-> ctx dom parser/parse))))
+               (catch Exception _
+                 (log/info "Failed to parse page! Cookies might be stale...")
+                 (cookies/with-session-bake ctx)
+                 (log/info "Parsing page (second attempt)...")
+                 (-> ctx dom parser/parse)))
         cfg  {:cache-dir cache-dir
               :cookies   (or cookies (cookies/serve ctx))}]
     (update data :bills (fn [bills]
@@ -111,11 +108,5 @@
                               slurp
                               (edn/read-string))]
              (merge ctx-base secrets)))
-
-  (def driver-spec {:headless true
-                    :path-driver "resources/webdrivers/geckodriver"})
-
-  (api/with-driver :firefox driver-spec d
-    (refresh-cookies d ctx))
 
   (scrape ctx))

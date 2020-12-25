@@ -1,6 +1,5 @@
 (ns delilah.gr.deddie.scraper
-  (:require [clojure.string :as str]
-            [clojure.tools.logging :as log]
+  (:require [clojure.tools.logging :as log]
 
             [hickory.select :as hs]
 

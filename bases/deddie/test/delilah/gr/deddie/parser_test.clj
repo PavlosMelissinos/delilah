@@ -1,6 +1,7 @@
 (ns delilah.gr.deddie.parser-test
   (:require [clojure.java.io :as io]
-            [clojure.test :refer :all]
+            [clojure.string :as str]
+            [clojure.test :refer [deftest is testing]]
             [clojure.tools.reader.edn :as edn]
 
             [java-time :as t]
@@ -38,15 +39,14 @@
         datetime (sut/str->datetime datestr)]
     (is (= datestr
            (-> (sut/datetime->str datetime "d/M/yyyy h:mm:ss a")
-               (clojure.string/replace #"AM" "πμ")
-               (clojure.string/replace #"PM" "μμ"))))))
+               (str/replace #"AM" "πμ")
+               (str/replace #"PM" "μμ"))))))
 
 
 (deftest test-str->time->str
-  (let []
-    (is (= "10:00"
-           (t/format "HH:mm" (sut/str->time "10:00"))
-           (t/format "HH:mm" (sut/str->time "10:00 πμ"))))))
+  (is (= "10:00"
+         (t/format "HH:mm" (sut/str->time "10:00"))
+         (t/format "HH:mm" (sut/str->time "10:00 πμ")))))
 
 (deftest test-deaccent
   (is (= "γαιδουρι"

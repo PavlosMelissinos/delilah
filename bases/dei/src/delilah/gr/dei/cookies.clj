@@ -1,5 +1,5 @@
 (ns delilah.gr.dei.cookies
-  (:require [clojure.spec.alpha :as s]
+  (:require [clojure.string :as str]
             [clojure.tools.reader.edn :as edn]
 
             [etaoin.api :as api]
@@ -9,7 +9,7 @@
 
             [delilah.gr.dei :as dei]))
 
-(defn log-in [driver {::dei/keys [user pass] :as ctx}]
+(defn log-in [driver {::dei/keys [user pass]}]
   (log/info "Firing up DEI sign-in page...")
   (doto driver
     (api/go "https://www.dei.gr/EBill/Login.aspx")
@@ -23,10 +23,9 @@
   driver)
 
 (defn location [{:delilah/keys [cache-dir]
-                 ::dei/keys [user]
-                 :as ctx}]
+                 ::dei/keys [user]}]
   (let [cache-dir (fs/expand-home cache-dir)]
-    (clojure.string/join "/" [cache-dir "dei" "cookies" user])))
+    (str/join "/" [cache-dir "dei" "cookies" user])))
 
 (defn- bake [driver ctx]
   (log/info "Getting fresh cookies from the oven...")
@@ -44,13 +43,12 @@
     (log/info (str "Loading cached cookies from " loc "..."))
     (try
       (-> loc slurp edn/read-string)
-      (catch Exception e
-        (do
-          (log/info (str "No cookies found for user" user " at " loc))
-          (with-session-bake ctx))))))
+      (catch Exception _
+        (log/info (str "No cookies found for user" user " at " loc))
+        (with-session-bake ctx)))))
 
-(defn- as-kv-string [{:keys [name value] :as cookie}]
-  (clojure.string/join "=" [name value]))
+(defn- as-kv-string [{:keys [name value]}]
+  (str/join "=" [name value]))
 
 (defn ->string [cookies]
-  (clojure.string/join "; " (map as-kv-string cookies)))
+  (str/join "; " (map as-kv-string cookies)))
