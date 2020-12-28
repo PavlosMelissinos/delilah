@@ -1,4 +1,5 @@
 {:paths    ["components/common_parser/src"
+            "components/mailer/src"
 
             "bases/deddie/resources"
             "bases/deddie/src"
@@ -20,8 +21,14 @@
             hickory-css-selector/hickory-css-selector {:git/url "https://github.com/taylorwood/hickory-css-selector"
                                                        :sha "ecdaf9e9ed4845cf3ed6df35c1f95f6b17812117"}
             etaoin/etaoin                             {:mvn/version "0.4.0"}
-            org.eclipse.jetty/jetty-util              {:mvn/version "9.4.35.v20201120"}}
+            org.eclipse.jetty/jetty-util              {:mvn/version "9.4.35.v20201120"}
+
+            ;; mail
+            io.forward/clojure-mail {:mvn/version "1.0.8"}
+            }
  :aliases  {:dev  {:extra-paths ["development/src"
+                                 "components/mailer/test-resources"
+                                 "components/mailer/test"
 
                                  "bases/deddie/test-resources"
                                  "bases/deddie/test"
