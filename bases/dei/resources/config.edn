@@ -1,4 +1,11 @@
 {:delilah/cache-dir "~/.cache/delilah"
  :driver            {:type        :firefox
                      :path-driver "~/.cache/delilah/webdrivers/geckodriver"
-                     :headless    true}}
+                     :headless    true}
+ :delilah/mailer    {:imap      "imap.gmail.com"
+                     :port      587
+                     :tls       true
+                     :folder    "[Gmail]/All Mail"
+                     :filter-fn (fn [{:keys [subject]}]
+                                  (and (clojure.string/includes? subject "ΔΕΗ")
+                                       (clojure.string/includes? subject "e-bill")))}}
