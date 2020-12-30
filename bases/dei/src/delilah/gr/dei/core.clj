@@ -11,11 +11,11 @@
             [delilah.common.parser :as cparser]
             [delilah.gr.dei.cookies :as cookies]
             [delilah.gr.dei :as ds]
-            [delilah.gr.dei.parser :as parser]))
+            [delilah.gr.dei.parser :as parser]
+            [delilah.gr.dei.mailer.api :as mailer]))
 
 (defn dom [{:keys [cookies] :as ctx}]
   (let [endpoint  "https://ebill.dei.gr/Default.aspx"
-                                        ;endpoint "https://ebill.dei.gr/Login.aspx"
         cookies   (or cookies (cookies/serve ctx))
         resp      (http/post endpoint
                              {:redirect-strategy :lax
@@ -60,18 +60,22 @@
 (defn latest-bill [{:keys [bills]}]
   (->> bills (sort-by :bill-date) reverse first))
 
-(defn scrape [{:keys [cache-dir cookies] :as ctx}]
-  (let [data (try
-               (-> ctx dom parser/parse)
-               (catch Exception _
-                 (log/info "Failed to parse page! Cookies might be stale...")
-                 (cookies/with-session-bake ctx)
-                 (log/info "Parsing page (second attempt)...")
-                 (-> ctx dom parser/parse)))
-        cfg  {:cache-dir cache-dir
-              :cookies   (or cookies (cookies/serve ctx))}]
-    (update data :bills (fn [bills]
-                          (map #(enrich-bill % cfg) bills)))))
+(defn enrich! [{:keys [bills] :as data} {:delilah/keys [enrich-with-mail? mailer] :as cfg}]
+  (let [bill-mails     (when enrich-with-mail? (mailer/do-task mailer))
+        enriched-bills (map #(enrich-bill % cfg) bills)]
+    (assoc data
+           :bills (map merge enriched-bills (concat bill-mails (repeat {}))))))
+
+(defn scrape [{:keys [cache-dir cookies enrich-with-mail? mailer] :as ctx}]
+  (let [data       (try
+                     (-> ctx dom parser/parse)
+                     (catch Exception _
+                       (log/info "Failed to parse page! Cookies might be stale...")
+                       (cookies/with-session-bake ctx)
+                       (log/info "Parsing page (second attempt)...")
+                       (-> ctx dom parser/parse)))
+        cfg        (assoc ctx :cookies (or cookies (cookies/serve ctx)))]
+    (enrich! data cfg)))
 
 (defn load-cfg [cfg]
   (-> (io/resource "config.edn")
@@ -109,4 +113,4 @@
                               (edn/read-string))]
              (merge ctx-base secrets)))
 
-  (scrape ctx))
+  (def res (scrape ctx)))
