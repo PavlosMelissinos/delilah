@@ -34,10 +34,7 @@
         fragments     (->> (take 4 fragments-raw)
                            (map :content)
                            (map first)
-                           (zipmap codes)
-                           #_(filter valid-field?)
-                           #_(map (juxt field-key field-value))
-                           #_(into {}))]
+                           (zipmap codes))]
     fragments))
 
 (defn parse2020 [dom]
