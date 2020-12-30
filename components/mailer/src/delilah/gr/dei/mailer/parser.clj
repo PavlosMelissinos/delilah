@@ -1,9 +1,12 @@
 (ns delilah.gr.dei.mailer.parser
   (:require [clojure.string :as str]
+
             [hickory.select :as hs]
             [hickory-css-selectors :as hcs]
-            [delilah.common.parser :as cparser]
-            [java-time :as t]))
+            [java-time :as t]
+            [taoensso.timbre :as log]
+
+            [delilah.common.parser :as cparser]))
 
 (def codes
   {:contract-account "Contract Account"
