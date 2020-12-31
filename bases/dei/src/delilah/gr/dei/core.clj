@@ -60,21 +60,22 @@
 (defn latest-bill [{:keys [bills]}]
   (->> bills (sort-by :bill-date) reverse first))
 
-(defn enrich! [{:keys [bills] :as data} {:delilah/keys [enrich-with-mail? mailer] :as cfg}]
-  (let [bill-mails     (when enrich-with-mail? (mailer/do-task mailer))
+(defn enrich! [{:keys [bills] :as data}
+               {:delilah.gr.dei.mailer/keys [enrich?] :as cfg}]
+  (let [bill-mails     (when enrich? (mailer/do-task cfg))
         enriched-bills (map #(enrich-bill % cfg) bills)]
     (assoc data
            :bills (map merge enriched-bills (concat bill-mails (repeat {}))))))
 
-(defn scrape [{:keys [cache-dir cookies enrich-with-mail? mailer] :as ctx}]
-  (let [data       (try
-                     (-> ctx dom parser/parse)
-                     (catch Exception _
-                       (log/info "Failed to parse page! Cookies might be stale...")
-                       (cookies/with-session-bake ctx)
-                       (log/info "Parsing page (second attempt)...")
-                       (-> ctx dom parser/parse)))
-        cfg        (assoc ctx :cookies (or cookies (cookies/serve ctx)))]
+(defn scrape [{:keys [cookies] :as ctx}]
+  (let [data (try
+               (-> ctx dom parser/parse)
+               (catch Exception _
+                 (log/info "Failed to parse page! Cookies might be stale...")
+                 (cookies/with-session-bake ctx)
+                 (log/info "Parsing page (second attempt)...")
+                 (-> ctx dom parser/parse)))
+        cfg  (assoc ctx :cookies (or cookies (cookies/serve ctx)))]
     (enrich! data cfg)))
 
 (defn load-cfg [cfg]
@@ -89,7 +90,6 @@
   (let [cfg           (load-cfg cfg)
         data          (scrape cfg)
         customer-code (:customer-code data)
-
         download-dir  (str/join "/"
                                 [(:delilah/cache-dir cfg)
                                  "dei"

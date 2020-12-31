@@ -5,7 +5,8 @@
 
             [delilah.gr.dei.mailer.parser :as parser]))
 
-(defn do-task [{:keys [imap user pass folder] :as mailer}]
+(defn do-task [{:delilah.gr.dei.mailer/keys [imap user pass folder filter-fn]
+                :as cfg}]
   (log/info (str "Retrieving dei bill information from server "
                  imap
                  ", for user " user
@@ -14,24 +15,18 @@
                  "."))
   (let [all-messages (let [store (mail/store imap user pass)]
                        (mail/all-messages store folder))
-        filter-fn    (-> mailer :filter-fn eval)
+        filter-fn    (eval filter-fn)
         power-bills  (->> (map msg/read-message all-messages)
                           (filter filter-fn))]
     (log/info "Parsing emails...")
     (map parser/parse power-bills)))
 
 (comment
-  (def cfg
-    {:folder        "[Gmail]/All Mail"
-     :imap          "imap.gmail.com"
-     :filter-fn     #(str/includes? (:subject %) "ΔΕΗ")})
   ;; get email content
   (require '[clojure.tools.reader.edn :as edn])
-  (defn load-settings []
+  (def settings
     (-> "/home/thirstytm/.config/delilah/secrets.edn"
         slurp
         edn/read-string))
 
-  (def mailer (:delilah/mailer (load-settings)))
-
-  (do-task mailer))
+  (do-task settings))
