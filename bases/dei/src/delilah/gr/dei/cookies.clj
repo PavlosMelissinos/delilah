@@ -1,5 +1,6 @@
 (ns delilah.gr.dei.cookies
-  (:require [clojure.string :as str]
+  (:require [clojure.spec.alpha :as s]
+            [clojure.string :as str]
             [clojure.tools.reader.edn :as edn]
 
             [etaoin.api :as api]
@@ -9,7 +10,9 @@
 
             [delilah.gr.dei :as dei]))
 
-(defn log-in [driver {::dei/keys [user pass]}]
+(s/def :delilah/driver api/firefox?)
+
+(defn- log-in [driver {::dei/keys [user pass]}]
   (log/info "Firing up DEI sign-in page...")
   (doto driver
     (api/go "https://www.dei.gr/EBill/Login.aspx")
@@ -21,6 +24,10 @@
     (api/wait-visible {:tag :div :fn/has-class "BillItem"}))
   (log/info "Connected!")
   driver)
+(s/fdef log-in
+  :args (s/cat :driver :delilah/driver
+               :cfg    ::dei/cfg)
+  :ret :delilah/driver)
 
 (defn location [{:delilah/keys [cache-dir]
                  ::dei/keys [user]}]
@@ -29,6 +36,7 @@
 
 (defn- bake [driver ctx]
   (log/info "Getting fresh cookies from the oven...")
+  (log/info "Type of filter-fn is: " (type (:filter-fn ctx)))
   (let [cookies (-> (log-in driver ctx) api/get-cookies)]
     (-> ctx location fs/parent fs/mkdirs)
     (-> ctx location (spit cookies))

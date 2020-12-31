@@ -12,7 +12,9 @@
             [delilah.gr.dei.cookies :as cookies]
             [delilah.gr.dei :as ds]
             [delilah.gr.dei.parser :as parser]
-            [delilah.gr.dei.mailer.api :as mailer]))
+            [delilah.gr.dei.mailer.api :as mailer-api]
+            [delilah.gr.dei.mailer :as mailer]))
+
 
 (defn dom [{:keys [cookies] :as ctx}]
   (let [endpoint  "https://ebill.dei.gr/Default.aspx"
@@ -22,6 +24,9 @@
                               :content-type      :json
                               :headers           {"Cookie" (cookies/->string cookies)}})]
     (-> resp :body cparser/parse)))
+(s/fdef dom
+  :args (s/cat :ctx (s/keys
+                     :opt-un [::cookies])))
 
 (defn- fetch-file
   "Makes an HTTP request and fetches a binary object."
@@ -61,11 +66,15 @@
   (->> bills (sort-by :bill-date) reverse first))
 
 (defn enrich! [{:keys [bills] :as data}
-               {:delilah.gr.dei.mailer/keys [enrich?] :as cfg}]
-  (let [bill-mails     (when enrich? (mailer/do-task cfg))
+               {::mailer/keys [enrich?] :as cfg}]
+  (let [bill-mails     (when enrich? (mailer-api/do-task cfg))
         enriched-bills (map #(enrich-bill % cfg) bills)]
     (assoc data
            :bills (map merge enriched-bills (concat bill-mails (repeat {}))))))
+(s/fdef enrich!
+  :args (s/cat :data (s/keys :req-un [::bills])
+               :cfg  (s/keys :req-un [::cookies]
+                             :opt    [::mailer/enrich?])))
 
 (defn scrape [{:keys [cookies] :as ctx}]
   (let [data (try
