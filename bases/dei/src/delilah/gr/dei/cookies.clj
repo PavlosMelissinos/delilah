@@ -36,7 +36,6 @@
 
 (defn- bake [driver ctx]
   (log/info "Getting fresh cookies from the oven...")
-  (log/info "Type of filter-fn is: " (type (:filter-fn ctx)))
   (let [cookies (-> (log-in driver ctx) api/get-cookies)]
     (-> ctx location fs/parent fs/mkdirs)
     (-> ctx location (spit cookies))

@@ -6,6 +6,7 @@
  :delilah.gr.dei.mailer/port      587
  :delilah.gr.dei.mailer/tls       true
  :delilah.gr.dei.mailer/folder    "[Gmail]/All Mail"
+ :delilah.gr.dei.mailer/search    "ΔΕΗ e-bill"
  :delilah.gr.dei.mailer/filter-fn (fn [{:keys [subject]}]
                                     (and (clojure.string/includes? subject "ΔΕΗ")
                                          (clojure.string/includes? subject "e-bill")))}
