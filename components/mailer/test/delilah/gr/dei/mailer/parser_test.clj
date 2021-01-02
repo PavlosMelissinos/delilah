@@ -17,6 +17,11 @@
              slurp
              cparser/parse))
 
+(deftest field-key
+  (let [fragment [{:type :element, :attrs nil, :tag :b, :content ["Contract Account"]} {:type :element, :attrs nil, :tag :br, :content nil} "012345678901"]]
+    (is (= :contract-account
+           (sut/field-key fragment)))))
+
 (deftest field-value
   (let [fragment [{:type :element, :attrs nil, :tag :b, :content ["Contract Account"]} {:type :element, :attrs nil, :tag :br, :content nil} "012345678901"]]
     (is (= "012345678901"

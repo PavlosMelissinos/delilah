@@ -1,5 +1,9 @@
 (ns delilah.common.parser
-  (:require [hickory.core :as html]))
+  (:require [clojure.spec.alpha :as s]
+            [hickory.core :as html]))
 
 (defn parse [doc]
-  (-> doc html/parse html/as-hickory))
+  (when doc
+    (-> doc html/parse html/as-hickory)))
+(s/fdef parse
+  :args (s/cat :doc string?))
