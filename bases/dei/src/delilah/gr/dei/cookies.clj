@@ -40,10 +40,17 @@
     (-> ctx location fs/parent fs/mkdirs)
     (-> ctx location (spit cookies))
     cookies))
+(s/fdef bake
+  :args (s/cat :driver :delilah/driver
+               :ctx    (s/keys
+                        :req [:delilah/cache-dir])))
 
 (defn with-session-bake [{:keys [driver] :as ctx}]
   (api/with-driver (:type driver) (dissoc driver :type) d
     (bake d ctx)))
+(s/fdef with-session-bake
+  :args (s/cat :ctx (s/keys
+                     :req-un [:delilah/driver])))
 
 (defn serve [{::dei/keys [user] :as ctx}]
   (let [loc (location ctx)]
