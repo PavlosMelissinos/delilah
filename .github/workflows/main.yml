@@ -9,15 +9,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: DeLaGuardo/setup-clojure@master
-        with:
-          cli: 1.10.1.763
-      - run: clojure -Mdev:test
-
   test-dei:
     runs-on: ubuntu-latest
     steps:
@@ -35,3 +26,12 @@ jobs:
         with:
           cli: 1.10.1.763
       - run: cd projects/deddie && clojure -Mdev:test
+
+  test-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: DeLaGuardo/setup-clojure@master
+        with:
+          cli: 1.10.1.763
+      - run: clojure -Mdev:test
