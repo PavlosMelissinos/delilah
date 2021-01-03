@@ -13,7 +13,8 @@
             [delilah.gr.dei :as ds]
             [delilah.gr.dei.parser :as parser]
             [delilah.gr.dei.mailer.api :as mailer-api]
-            [delilah.gr.dei.mailer :as mailer]))
+            [delilah.gr.dei.mailer :as mailer]
+            [java-time :as t]))
 
 
 (defn dom [{:keys [cookies] :as ctx}]
@@ -62,19 +63,66 @@
     (log/info (str "PDF saved!"))
     filepath))
 
+;; Bills
+
+(s/def ::date-received t/instant?)
+(s/def ::mail-bill (s/keys :req-un [::date-received]))
+(s/def ::bill-date t/local-date?)
+(s/def ::dei-bill (s/keys :req-un [::bill-date]))
+
+(defn date-received [bill]
+  (t/local-date-time (:date-received bill) (t/zone-id)))
+(s/fdef bill-date
+  :args (s/cat :bill (s/or :dei-bill ::dei-bill
+                           :mail-bill ::mail-bill))
+  :ret  t/instant?)
+
+(defn bill-date [bill]
+  (if-let [dt (:bill-date bill)]
+    (-> dt t/local-date-time (t/truncate-to :days))))
+(s/fdef bill-date
+  :args (s/cat :bill (s/or :dei-bill ::dei-bill
+                           :mail-bill ::mail-bill))
+  :ret  #(or (t/local-date-time? %) (nil? %)))
+
+(s/def ::bills (s/coll-of ::dei-bill))
+
+(defn contemporary-mail [dei-bill mail-bills]
+  (let [start-of-bill-day (bill-date dei-bill)]
+    (log/info (str "Looking for matching mail bills around " start-of-bill-day))
+    (first (filter #(t/after? (t/plus start-of-bill-day (t/weeks 1))
+                              (date-received %)
+                              start-of-bill-day)
+                   mail-bills))))
+
+(defn join-bill-data [mail-bills dei-bills]
+  (let [mail-bills      (sort-by :date-received mail-bills)
+        dei-bills       (sort-by :bill-date dei-bills)
+        full-bills      (map #(merge % (contemporary-mail % mail-bills)) dei-bills)
+        legacy-date     (-> dei-bills first bill-date) ;; date of oldest bill on dei.gr
+        legacy-bills    (filter #(t/before? (date-received %) legacy-date) mail-bills)
+        all-bills       (concat full-bills legacy-bills)]
+    (->> (sort-by #(or (bill-date %) (date-received %)) all-bills)
+         reverse)))
+(s/fdef join-bill-data
+  :args (s/cat :mail-bills (s/coll-of (s/keys :req-un [::date-received]))
+               :dei-bills  (s/coll-of (s/keys :req-un [::bill-date]))))
+
+(defn enrich-bills! [bills {::mailer/keys [enrich?] :as cfg}]
+  (let [mail-bills (when enrich? (mailer-api/do-task cfg))
+        dei-bills  (map #(enrich-bill % cfg) bills)]
+    (join-bill-data mail-bills dei-bills)))
+(s/fdef enrich-bills!
+  :args (s/cat :bills ::bills
+               :cfg   (s/keys :req-un [::cookies]
+                              :opt    [::mailer/enrich?])))
+
 (defn latest-bill [{:keys [bills]}]
   (->> bills (sort-by :bill-date) reverse first))
+(s/fdef latest-bill
+  :args (s/cat :dei-map (s/keys :req-un [::bills])))
 
-(defn enrich! [{:keys [bills] :as data}
-               {::mailer/keys [enrich?] :as cfg}]
-  (let [bill-mails     (when enrich? (mailer-api/do-task cfg))
-        enriched-bills (map #(enrich-bill % cfg) bills)]
-    (assoc data
-           :bills (map merge enriched-bills (concat bill-mails (repeat {}))))))
-(s/fdef enrich!
-  :args (s/cat :data (s/keys :req-un [::bills])
-               :cfg  (s/keys :req-un [::cookies]
-                             :opt    [::mailer/enrich?])))
+;;; General
 
 (defn scrape [{:keys [cookies] :as ctx}]
   (let [data (try
@@ -85,7 +133,7 @@
                  (log/info "Parsing page (second attempt)...")
                  (-> ctx dom parser/parse)))
         cfg  (assoc ctx :cookies (or cookies (cookies/serve ctx)))]
-    (enrich! data cfg)))
+    (update data :bills enrich-bills! cfg)))
 
 (defn load-cfg [cfg]
   (-> (io/resource "config.edn")
