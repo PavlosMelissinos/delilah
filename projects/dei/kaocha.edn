@@ -1,7 +1,9 @@
 #kaocha/v1
 {:tests                              [{:id                      :dei
-                                       :test-paths              ["../../bases/dei/test"]
+                                       :test-paths              ["../../bases/dei/test"
+                                                                 "../../components/mailer/test"]
                                        :source-paths            ["../../components/common_parser/src"
+                                                                 "../../components/mailer/src"
                                                                  "../../bases/dei/src"]
                                        :ns-patterns             ["-test$"]}]
  :color?                             true

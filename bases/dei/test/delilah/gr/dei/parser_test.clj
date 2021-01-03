@@ -39,6 +39,15 @@
     (is (= "246813579"
            (sut/property-info fragment)))))
 
+(deftest test-bill-date
+  (let [fragment {:type :element
+                  :attrs {:target "_blank"
+                          :href "UserBill.aspx?FileName=000000000000_20200217_000000000_1.pdf"
+                          :title "Έκδοση 17.02.2020"}
+                  :tag :a}]
+    (is (= (t/local-date "2020-02-17")
+           (sut/bill-date fragment)))))
+
 (deftest test-bill
   (let [fragment {:type :element, :attrs {:target "_blank", :href "UserBill.aspx?FileName=name-of-file.pdf", :title "Έκδοση 18.12.2019"}, :tag :a, :content ["\r\n                                    Έκδοση 18.12.2019\r\n                                "]}]
     (is (= {:bill-date "2019-12-18",

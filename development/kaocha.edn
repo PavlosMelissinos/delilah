@@ -1,7 +1,10 @@
 #kaocha/v1
 {:tests                              [{:id                      :dei
-                                       :test-paths              ["bases/dei/test"]
-                                       :source-paths            ["bases/dei/src" "components/common_parser/src"]
+                                       :test-paths              ["bases/dei/test"
+                                                                 "components/mailer/test"]
+                                       :source-paths            ["components/common_parser/src"
+                                                                 "components/mailer/src"
+                                                                 "bases/dei/src"]
                                        :ns-patterns             ["-test$"]}
                                       {:id                      :deddie
                                        :test-paths              ["bases/deddie/test"]
