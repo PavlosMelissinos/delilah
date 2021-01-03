@@ -63,4 +63,41 @@ Approach #3: Full manual mode
   ; Choose a random bill
   (rand-nth (:bills data)))
 ```
-The :pdf-contents key of the result stores the binary file as a byte array. You can use `clojure.java.io/copy` to save it to disk.
+
+The result here is a map that satisfies the following spec:
+```clojure
+(clojure.spec.alpha/def ::pdf-contents bytes?)
+(clojure.spec.alpha/def (s/keys :req-un [::pdf-contents]))
+```
+The `:pdf-contents` key stores the binary file as a byte array. You can use `clojure.java.io/copy` to save it to disk.
+
+### Enrich bills with email data (IMAP)
+
+ΔΕΗ sends an email notification a few days after a bill has been issued.
+delilah can optionally retrieve that info for you and enrich its reports.
+
+Gmail:
+
+```clojure
+(dei/extract {:delilah.gr.dei/user           "foo"
+              :delilah.gr.dei/pass           "bar"
+              :delilah.gr.dei.mailer/user    "mail-foo"
+              :delilah.gr.dei.mailer/pass    "mail-bar"
+              :delilah.gr.dei.mailer/enrich? true})
+```
+
+In order to use a different mail provider, you need to override at least some of the optional settings.
+Here are the settings, along with their default values (where applicable):
+
+```clojure
+(dei/extract {:delilah.gr.dei/user           "foo"
+              :delilah.gr.dei/pass           "bar"
+              :delilah.gr.dei.mailer/user    "mail-foo"
+              :delilah.gr.dei.mailer/pass    "mail-bar"
+              :delilah.gr.dei.mailer/imap    "imap.gmail.com"
+              :delilah.gr.dei.mailer/port    587
+              :delilah.gr.dei.mailer/tls     true
+              :delilah.gr.dei.mailer/folder  "[Gmail]/All Mail" ;; default folder to look into
+              :delilah.gr.dei.mailer/search  "ΔΕΗ e-bill"
+              :delilah.gr.dei.mailer/enrich? false})
+```

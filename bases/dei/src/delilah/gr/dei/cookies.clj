@@ -43,7 +43,7 @@
 (s/fdef bake
   :args (s/cat :driver :delilah/driver
                :ctx    (s/keys
-                        :req-un [::cache-dir])))
+                        :req [:delilah/cache-dir])))
 
 (defn with-session-bake [{:keys [driver] :as ctx}]
   (api/with-driver (:type driver) (dissoc driver :type) d
