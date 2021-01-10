@@ -26,6 +26,9 @@
 
             ;; mail
             io.forward/clojure-mail {:mvn/version "1.0.8"}
+
+            ;; pdfs
+            pdfboxing/pdfboxing {:mvn/version "0.1.14"}
             }
  :aliases  {:dev  {:extra-paths ["development/src"
                                  "components/mailer/test-resources"
