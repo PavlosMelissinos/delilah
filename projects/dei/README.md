@@ -1,6 +1,4 @@
-# DEI
-
-![DEI logo](images/dei.png)
+<img src="images/dei.png" alt="dei logo" width="150"/>
 
 ## Setup
 

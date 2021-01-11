@@ -1,5 +1,3 @@
-# DEDDIE
-
 ![DEDDIE logo](images/deddie.png)
 
 This is a [delilah](/README.md) component that retrieves announced upcoming outages in Greece, for a certain prefecture/municipality.
