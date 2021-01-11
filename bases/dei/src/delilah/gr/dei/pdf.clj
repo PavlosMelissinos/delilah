@@ -2,8 +2,9 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as str]
 
+            [java-time :as t]
             [pdfboxing.common :as common]
-            )
+            [taoensso.timbre :as log])
   (:import (org.apache.pdfbox.text PDFTextStripper
                                    PDFTextStripperByArea)
            (java.awt Rectangle)))
@@ -23,6 +24,13 @@
   (with-open [doc (common/obtain-document pdfdoc)]
     (doall (map #(area-text doc %) areas))))
 
+(defn version [date]
+  (cond
+    (t/after? date (t/local-date "2020-12-01")) "v2"
+    (t/after? date (t/local-date "2019-12-01")) "v1"))
+(s/fdef version
+  :args (s/cat :date t/local-date?))
+
 (defn- pos-int-or-zero? [n]
   (or (pos-int? n) (zero? n)))
 
@@ -36,6 +44,7 @@
 (s/def ::area (s/keys :req-un [::id ::x ::y ::w ::h ::page-number]))
 
 (defn parse-text [pdfdoc {:keys [version areas] :as cfg}]
+  (log/info (str "Parsing " version " pdf bill"))
   (let [areas (filter #(-> % :id namespace (= version)) areas)
         texts (extract-by-areas pdfdoc areas)]
     (->> (map #(vector (:id %1) (str/trim %2)) areas texts)
