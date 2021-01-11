@@ -1,5 +1,7 @@
 # DEI
 
+![DEI logo](images/dei.png)
+
 ## Setup
 
 Download a webdriver of your choice:
