@@ -1,4 +1,4 @@
-# DEI
+<img src="images/dei.png" alt="dei logo" width="150"/>
 
 ## Setup
 
