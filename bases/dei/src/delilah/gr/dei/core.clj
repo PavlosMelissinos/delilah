@@ -5,17 +5,18 @@
             [clojure.tools.reader.edn :as edn]
 
             [clj-http.client :as http]
+            [java-time :as t]
             [me.raynes.fs :as fs]
             [taoensso.timbre :as log]
 
             [delilah.common.parser :as cparser]
             [delilah.gr.dei.cookies :as cookies]
             [delilah.gr.dei :as ds]
-            [delilah.gr.dei.parser :as parser]
-            [delilah.gr.dei.mailer.api :as mailer-api]
-            [delilah.gr.dei.mailer :as mailer]
             [delilah.gr.dei.bill :as bill]
-            [java-time :as t]))
+            [delilah.gr.dei.mailer :as mailer]
+            [delilah.gr.dei.mailer.api :as mailer-api]
+            [delilah.gr.dei.parser :as parser]
+            [delilah.gr.dei.pdf :as pdf]))
 
 
 (defn dom [{:keys [cookies] :as ctx}]
@@ -64,12 +65,12 @@
 ;;; General
 
 (defn load-cfg [cfg]
-  (-> (io/resource "config.edn")
-      slurp
-      (edn/read-string)
-      (merge cfg)
-      (update-in [:driver :path-driver] fs/expand-home)
-      (update :delilah/cache-dir fs/expand-home)))
+  (let [base-fn   (fn [c] (-> (io/resource c) slurp edn/read-string))
+        base-cfg  (base-fn "config.edn")
+        pdf-areas (base-fn "coordinates.edn")]
+    (-> (merge base-cfg {::pdf/areas pdf-areas} cfg)
+        (update-in [:driver :path-driver] fs/expand-home)
+        (update :delilah/cache-dir fs/expand-home))))
 
 (defn scrape [{:keys [cookies] :as ctx}]
   (let [data (try
@@ -93,14 +94,13 @@
     (log/info (str "PDF saved!"))
     filepath))
 
-(defn extract [{:keys [save-files?] :as cfg}]
-  (let [cfg           (load-cfg cfg)
+(defn extract [cfg]
+  (let [{:keys [save-files? :delilah/cache-dir]
+         :as cfg}     (load-cfg cfg)
+
         data          (scrape cfg)
         customer-code (:customer-code data)
-        download-dir  (str/join "/"
-                                [(:delilah/cache-dir cfg)
-                                 "dei"
-                                 "downloads"])]
+        download-dir  (str/join "/" [cache-dir "dei" "downloads"])]
     (when save-files?
       (doseq [{:keys [bill-date] :as bill} (:bills data)]
         (save-pdf! bill (format "%s/%s_%s.pdf" download-dir customer-code bill-date))))
@@ -109,21 +109,10 @@
   :args (s/cat :cfg ::ds/cfg))
 
 (comment
-  (def ctx (let [ctx-base (-> (io/resource "config.edn")
-                              slurp
-                              (edn/read-string)
-                              (update-in [:driver :path-driver] fs/expand-home)
-                              (update :delilah/cache-dir fs/expand-home))
-                 areas    (-> (io/resource "coordinates.edn")
-                              fs/expand-home
-                              slurp
-                              (edn/read-string))
-                 secrets  (-> "~/.config/delilah/secrets.edn"
-                              fs/expand-home
-                              slurp
-                              (edn/read-string))]
-             (merge ctx-base
-                    {:delilah.gr.dei.pdf/areas areas}
-                    secrets)))
+  (def ctx (-> "~/.config/delilah/secrets.edn"
+               fs/expand-home
+               slurp
+               edn/read-string
+               load-cfg))
 
   (def res (scrape ctx)))
