@@ -114,10 +114,16 @@
                               (edn/read-string)
                               (update-in [:driver :path-driver] fs/expand-home)
                               (update :delilah/cache-dir fs/expand-home))
+                 areas    (-> (io/resource "coordinates.edn")
+                              fs/expand-home
+                              slurp
+                              (edn/read-string))
                  secrets  (-> "~/.config/delilah/secrets.edn"
                               fs/expand-home
                               slurp
                               (edn/read-string))]
-             (merge ctx-base secrets)))
+             (merge ctx-base
+                    {:delilah.gr.dei.pdf/areas areas}
+                    secrets)))
 
   (def res (scrape ctx)))
