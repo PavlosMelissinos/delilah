@@ -26,7 +26,10 @@
 
             ;; mail
             io.forward/clojure-mail {:mvn/version "1.0.8"}
-            }
+
+            ;; pdfs
+            pdfboxing/pdfboxing {:git/url "https://github.com/dotemacs/pdfboxing"
+                                 :sha "3dafff7102d99df072b09626c9349ba3a9719bf6"}}
  :aliases  {:dev  {:extra-paths ["development/src"
                                  "components/mailer/test-resources"
                                  "components/mailer/test"

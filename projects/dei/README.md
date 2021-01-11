@@ -23,13 +23,37 @@ Require the API namespace
 
 ### Extract account data
 
+> :warning: The pdf blobs are printed as vectors and can be really long, so use `(set! *print-length* x)`
+> before running delilah.gr.dei.api/extract in the REPL to limit the size of the output
+
 ```clojure
 (dei/extract {:delilah.gr.dei/user "foo", :delilah.gr.dei/pass "bar"})
 ```
 
-> :warning: The pdf blobs are printed as vectors and can be really long, so use `(set! *print-length* x)`
-> before running delilah.gr.dei.api/extract in the REPL to limit the size of the output
+Results in something like this:
 
+```
+  {:amount "100,00 €",
+   :v1/end-date "17/08/2020",
+   :address "ΚΕΛΙ 33, 18120, ΚΟΡΥΔΑΛΛΟΣ",
+   :v1/expiration-date "14/09/2020",
+   :v1/power-consumption "1000 kW",
+   :e-payment-code "RF00000000000000000000000",
+   :pdf-url
+   "https://www.dei.gr/EBill/UserBill.aspx?FileName=000000000000_00000000_000000000_0.pdf",
+   :v1/e-payment-code "RF00000000000000000000000",
+   :v1/bill-type "ΕΚΚΑΘΑΡΙΣΤΙΚΟΣ",
+   :bill-date #object[java.time.LocalDate 0x7addc9aa "2020-08-20"],
+   :contract-account "000000000000",
+   :date-received #object[java.time.Instant 0x583f470d "2020-08-21T10:50:43Z"],
+   :v1/period-length "24",
+   :v1/start-date "16/04/2020",
+   :expiration-date "14/09/2020",
+   :v1/amount "100,00",
+   :pdf-contents
+   [37, 80, 68, 70, 45, 49, 46, 55, 10, 37, -28, -29, -49, -46, 10, 53, 32, 48,
+    32, 111, ...]}
+```
 
 ### Use chromedriver
 
