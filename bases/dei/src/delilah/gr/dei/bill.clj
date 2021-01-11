@@ -4,8 +4,10 @@
             [clj-http.client :as http]
             [java-time :as t]
             [taoensso.timbre :as log]
+            [pdfboxing.common :as common]
 
-            [delilah.gr.dei.cookies :as cookies]))
+            [delilah.gr.dei.cookies :as cookies]
+            [delilah.gr.dei.pdf :as pdf]))
 
 (defn- fetch-file
   "Makes an HTTP request and fetches a binary object."
@@ -21,14 +23,19 @@
      (when (= (:status resp) 200)
        (:body resp)))))
 
-(defn enrich [{:keys [pdf-url] :as bill} {:keys [cookies]}]
-  (assoc bill
-         :pdf-contents (fetch-file pdf-url cookies)))
+(defn enrich [{:keys [pdf-url bill-date] :as bill} {:keys [cookies ::pdf/areas] :as cfg}]
+  (let [pdfdoc (fetch-file pdf-url cookies)
+        version (pdf/version bill-date)]
+    (log/info "Enriching bill from " bill-date ". Using parser " version)
+    (merge bill
+           {:pdf-contents pdfdoc}
+           (pdf/parse-text pdfdoc {:version version
+                                   :areas areas}))))
 (s/fdef enrich
   :args (s/cat :bill (s/keys
-                      :req-un [::pdf-url])
+                      :req-un [::pdf-url ::bill-date])
                :cfg  (s/keys
-                      :req-un [::cookies])))
+                      :req-un [::cookies ::pdf/areas])))
 
 (s/def ::date-received t/instant?)
 (s/def ::mail-bill (s/keys :req-un [::date-received]))
