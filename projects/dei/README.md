@@ -103,25 +103,25 @@ delilah can optionally retrieve that info for you and enrich its reports.
 Gmail:
 
 ```clojure
-(dei/extract {:delilah.gr.dei/user           "foo"
-              :delilah.gr.dei/pass           "bar"
-              :delilah.gr.dei.mailer/user    "mail-foo"
-              :delilah.gr.dei.mailer/pass    "mail-bar"
-              :delilah.gr.dei.mailer/enrich? true})
+(dei/extract {:delilah.dei/user           "foo"
+              :delilah.dei/pass           "bar"
+              :delilah.dei-mailer/user    "mail-foo"
+              :delilah.dei-mailer/pass    "mail-bar"
+              :delilah.dei-mailer/enrich? true})
 ```
 
 In order to use a different mail provider, you need to override at least some of the optional settings.
 Here are the settings, along with their default values (where applicable):
 
 ```clojure
-(dei/extract {:delilah.gr.dei/user           "foo"
-              :delilah.gr.dei/pass           "bar"
-              :delilah.gr.dei.mailer/user    "mail-foo"
-              :delilah.gr.dei.mailer/pass    "mail-bar"
-              :delilah.gr.dei.mailer/imap    "imap.gmail.com"
-              :delilah.gr.dei.mailer/port    587
-              :delilah.gr.dei.mailer/tls     true
-              :delilah.gr.dei.mailer/folder  "[Gmail]/All Mail" ;; default folder to look into
-              :delilah.gr.dei.mailer/search  "ΔΕΗ e-bill"
-              :delilah.gr.dei.mailer/enrich? false})
+(dei/extract {:delilah.dei/user           "foo"
+              :delilah.dei/pass           "bar"
+              :delilah.dei-mailer/user    "mail-foo"
+              :delilah.dei-mailer/pass    "mail-bar"
+              :delilah.dei-mailer/imap    "imap.gmail.com"
+              :delilah.dei-mailer/port    587
+              :delilah.dei-mailer/tls     true
+              :delilah.dei-mailer/folder  "[Gmail]/All Mail" ;; default folder to look into
+              :delilah.dei-mailer/search  "ΔΕΗ e-bill"
+              :delilah.dei-mailer/enrich? false})
 ```

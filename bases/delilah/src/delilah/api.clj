@@ -1,6 +1,6 @@
 (ns delilah.api
-  (:require [delilah.gr.dei.api :as dei]
-            [delilah.gr.deddie.api :as deddie]))
+  (:require [delilah.dei.api :as dei]
+            [delilah.deddie.api :as deddie]))
 
 (defn parse [{:keys [provider] :as ctx}]
   (cond

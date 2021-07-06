@@ -1,0 +1,13 @@
+{:vcs                  "git"
+ :top-namespace        "delilah"
+ :interface-ns         "interface"
+ :default-profile-name "default"
+ :compact-views        #{}
+ :release-tag-pattern  "v[0-9]*"
+ :stable-tag-pattern   "stable-*"
+ :projects             {"deddie"      {:alias "deddie" :test []}
+                        "dei"         {:alias "dei" :test []}
+                        "delilah"     {:alias "delilah" :test []}
+                        "philistine"  {:alias "philistine" :test []}
+                        "development" {:alias "dev" :test []}
+                        "poly"        {:alias "poly"}}}

@@ -2,8 +2,8 @@
  :driver            {:type        :firefox
                      :path-driver "~/.cache/delilah/webdrivers/geckodriver"
                      :headless    true}
- :delilah.gr.dei.mailer/imap      "imap.gmail.com"
- :delilah.gr.dei.mailer/port      587
- :delilah.gr.dei.mailer/tls       true
- :delilah.gr.dei.mailer/folder    "[Gmail]/All Mail"
- :delilah.gr.dei.mailer/search    "ΔΕΗ e-bill"}
+ :delilah.dei-mailer/imap   "imap.gmail.com"
+ :delilah.dei-mailer/port   587
+ :delilah.dei-mailer/tls    true
+ :delilah.dei-mailer/folder "[Gmail]/All Mail"
+ :delilah.dei-mailer/search "ΔΕΗ e-bill"}

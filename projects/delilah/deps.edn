@@ -1,0 +1,22 @@
+{:paths ["../../components/common_parser/src"
+         "../../components/mailer/src"
+
+         "../../bases/deddie/src"
+         "../../bases/dei/resources"
+         "../../bases/dei/src"
+         "../../bases/delilah/src"]
+ :aliases
+ {:dev {:extra-paths ["../../development/src"
+
+                      "../../bases/philistine/test-resources"
+                      "../../bases/philistine/test"]
+        :extra-deps  {org.clojure/tools.namespace {:mvn/version "0.2.11"}
+                      lambdaisland/kaocha         {:mvn/version "1.0.732"}
+                      rewrite-clj/rewrite-clj     {:mvn/version "0.6.1"}
+                      spec-provider/spec-provider {:mvn/version "0.4.14"}}}
+  :test {:extra-deps {com.h2database/h2 {:mvn/version "1.4.200"}}}
+  :runner {:extra-deps
+           {com.cognitect/test-runner
+            {:git/url "https://github.com/cognitect-labs/test-runner"
+             :sha "b6b3193fcc42659d7e46ecd1884a228993441182"}}
+           :main-opts ["-m" "cognitect.test-runner"]}}}

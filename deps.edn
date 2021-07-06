@@ -6,9 +6,7 @@
             "bases/dei/resources"
             "bases/dei/src"
             "bases/delilah/src"]
- :jvm-opts ["-Duser.timezone=UTC"
-            "-XX:-OmitStackTraceInFastThrow"]
- :deps     {org.clojure/clojure                 {:mvn/version "1.10.1"}
+ :deps     {org.clojure/clojure                 {:mvn/version "1.10.3"}
             org.clojure/tools.logging           {:mvn/version "1.1.0"}
             expound/expound                     {:mvn/version "0.8.6"}
             clojure.java-time/clojure.java-time {:mvn/version "0.3.2"}
@@ -29,21 +27,41 @@
 
             ;; pdfs
             pdfboxing/pdfboxing {:git/url "https://github.com/dotemacs/pdfboxing"
-                                 :sha "3dafff7102d99df072b09626c9349ba3a9719bf6"}}
+                                 :sha "3dafff7102d99df072b09626c9349ba3a9719bf6"}
+
+            ;; philistine
+            integrant/integrant     {:mvn/version "0.8.0"}
+            integrant/repl          {:mvn/version "0.3.1"}
+            ring/ring-core          {:mvn/version "1.8.2"}
+            ring/ring-jetty-adapter {:mvn/version "1.8.2"}
+            ring/ring-defaults      {:mvn/version "0.3.2"}
+
+            metosin/reitit-ring       {:mvn/version "0.5.5"}
+            metosin/reitit-middleware {:mvn/version "0.5.5"}
+
+            selmer/selmer {:mvn/version "1.12.31"}
+
+            hiccup/hiccup {:mvn/version "1.0.5"}
+            }
  :aliases  {:dev  {:extra-paths ["development/src"
                                  "components/mailer/test-resources"
                                  "components/mailer/test"
 
                                  "bases/deddie/test-resources"
                                  "bases/deddie/test"
-                                 "bases/dei/test-resources"
                                  "bases/dei/test"]
                    :extra-deps  {org.clojure/tools.namespace {:mvn/version "0.2.11"}
                                  lambdaisland/kaocha         {:mvn/version "1.0.732"}
                                  rewrite-clj/rewrite-clj     {:mvn/version "0.6.1"}
                                  spec-provider/spec-provider {:mvn/version "0.4.14"}}}
-            :test {:extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}}
+            :test {:extra-paths []
+                   :extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}}
                    :main-opts   ["-m" "kaocha.runner" "--config-file" "development/kaocha.edn"]}
+
+            :poly {:extra-deps {polylith/clj-poly {:git/url   "https://github.com/polyfy/polylith.git"
+                                                   :sha       "d264d2bbf66d8cf4d745c3f1d3cadf3b142bd193"
+                                                   :deps/root "projects/poly"}}
+                   :main-opts  ["-m" "polylith.clj.core.poly-cli.core"]}
 
             :lint/kondo
             {:extra-deps {clj-kondo/clj-kondo {:mvn/version "RELEASE"}}

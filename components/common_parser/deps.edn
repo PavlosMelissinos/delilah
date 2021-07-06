@@ -1,0 +1,9 @@
+{:paths   ["src"]
+ :deps    {org.clojure/clojure {:mvn/version "1.10.3"}
+
+           ;; web
+           hickory/hickory                           {:mvn/version "0.7.1"}
+           hickory-css-selector/hickory-css-selector {:git/url "https://github.com/taylorwood/hickory-css-selector"
+                                                    :sha     "ecdaf9e9ed4845cf3ed6df35c1f95f6b17812117"}}
+ :aliases {:test {:extra-paths ["test"]
+                  :extra-deps  []}}}

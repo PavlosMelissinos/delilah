@@ -1,0 +1,43 @@
+{:paths ["../../components/common_parser/src"
+         "../../components/mailer/src"
+
+         "../../bases/deddie/src"
+         "../../bases/dei/resources"
+         "../../bases/dei/src"
+         "../../bases/delilah/src"]
+ :deps {org.clojure/clojure {:mvn/version "1.10.3"}
+
+        integrant/integrant {:mvn/version "0.8.0"}
+        integrant/repl      {:mvn/version "0.3.1"}
+        ;; if you want to use http-kit instead of Jetty:
+        ;; http-kit/http-kit {:mvn/version "2.5.0"}
+        ring/ring-core          {:mvn/version "1.8.2"}
+        ring/ring-jetty-adapter {:mvn/version "1.8.2"}
+        ring/ring-defaults      {:mvn/version "0.3.2"}
+
+        metosin/reitit-ring       {:mvn/version "0.5.5"}
+        metosin/reitit-middleware {:mvn/version "0.5.5"}
+
+        selmer/selmer {:mvn/version "1.12.31"}
+
+        hiccup/hiccup {:mvn/version "1.0.5"}
+
+        ;;org.xerial/sqlite-jdbc {:mvn/version "3.34.0"}
+        ;;seancorfield/next.jdbc {:mvn/version "1.1.613"}
+        }
+ :aliases
+ {:dev {:extra-paths ["../../development/src"
+
+                      "../../bases/philistine/test-resources"
+                      "../../bases/philistine/test"]
+        :extra-deps  {org.clojure/tools.namespace {:mvn/version "0.2.11"}
+                      lambdaisland/kaocha         {:mvn/version "1.0.732"}
+                      rewrite-clj/rewrite-clj     {:mvn/version "0.6.1"}
+                      spec-provider/spec-provider {:mvn/version "0.4.14"}}}
+  :test {:extra-deps
+         {com.h2database/h2 {:mvn/version "1.4.200"}}}
+  :runner {:extra-deps
+           {com.cognitect/test-runner
+            {:git/url "https://github.com/cognitect-labs/test-runner"
+             :sha "b6b3193fcc42659d7e46ecd1884a228993441182"}}
+           :main-opts ["-m" "cognitect.test-runner"]}}}

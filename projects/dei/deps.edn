@@ -30,7 +30,6 @@
                                  "../../components/mailer/test-resources"
                                  "../../components/mailer/test"
 
-                                 "../../bases/dei/test-resources"
                                  "../../bases/dei/test"]
                    :extra-deps  {org.clojure/tools.namespace {:mvn/version "0.2.11"}
                                  lambdaisland/kaocha         {:mvn/version "1.0.732"}
