@@ -9,5 +9,4 @@
                         "dei"         {:alias "dei" :test []}
                         "delilah"     {:alias "delilah" :test []}
                         "philistine"  {:alias "philistine" :test []}
-                        "development" {:alias "dev" :test []}
-                        "poly"        {:alias "poly"}}}
+                        "development" {:alias "dev" :test []}}}

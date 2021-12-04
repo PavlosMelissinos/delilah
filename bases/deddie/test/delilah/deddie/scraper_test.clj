@@ -12,12 +12,12 @@
 (def live-dom1 (api/dom {:prefecture "ΑΤΤΙΚΗΣ"}))
 (def live-dom2 (api/dom {:prefecture "ΑΤΤΙΚΗΣ" :municipality "ΑΘΗΝΑΙΩΝ"}))
 
-(def dom (-> "delilah/gr/deddie/dom.edn"
+(def dom (-> "delilah/deddie/dom.edn"
              io/resource
              slurp
              edn/read-string))
 
-(def dom2 (-> "delilah/gr/deddie/dom2.edn"
+(def dom2 (-> "delilah/deddie/dom2.edn"
              io/resource
              slurp
              edn/read-string))
@@ -93,7 +93,7 @@
              (sut/outages dom))))))
 
 (deftest test-outages-incomplete
-  (let [outages2 (-> "delilah/gr/deddie/outages-incomplete.edn"
+  (let [outages2 (-> "delilah/deddie/outages-incomplete.edn"
                      io/resource
                      slurp
                      edn/read-string)]

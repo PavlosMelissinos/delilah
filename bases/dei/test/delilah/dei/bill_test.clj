@@ -1,5 +1,5 @@
-(ns delilah.gr.dei.bill-test
-  (:require [delilah.gr.dei.bill :as sut]
+(ns delilah.dei.bill-test
+  (:require [delilah.dei.bill :as sut]
             [clojure.test :refer :all]
             [java-time :as t]))
 

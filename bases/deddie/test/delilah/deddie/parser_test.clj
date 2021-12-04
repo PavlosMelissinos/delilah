@@ -8,7 +8,7 @@
 
             [delilah.deddie.parser :as sut]))
 
-(def dom (-> "delilah/gr/deddie/dom.edn"
+(def dom (-> "delilah/deddie/dom.edn"
              io/resource
              slurp
              edn/read-string))

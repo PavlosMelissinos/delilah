@@ -1,4 +1,25 @@
 {:paths ["src"]
- :deps {}
+ :deps {org.clojure/clojure                 {:mvn/version "1.10.3"}
+        org.clojure/tools.logging           {:mvn/version "1.1.0"}
+        expound/expound                     {:mvn/version "0.8.6"}
+        clojure.java-time/clojure.java-time {:mvn/version "0.3.2"}
+        clj-time/clj-time                   {:mvn/version "0.15.2"} ;; legacy reasons because clojure-mail uses joda time
+        me.raynes/fs                        {:mvn/version "1.4.6"}
+        com.taoensso/timbre                 {:mvn/version "5.1.0"}
+
+        ;; web
+        clj-http/clj-http                         {:mvn/version "3.10.0"}
+        hickory/hickory                           {:mvn/version "0.7.1"}
+        hickory-css-selector/hickory-css-selector {:git/url "https://github.com/taylorwood/hickory-css-selector"
+                                                   :sha "ecdaf9e9ed4845cf3ed6df35c1f95f6b17812117"}
+        etaoin/etaoin                             {:mvn/version "0.4.0"}
+        org.eclipse.jetty/jetty-util              {:mvn/version "9.4.35.v20201120"}
+
+        ;; mail
+        io.forward/clojure-mail {:mvn/version "1.0.8"}
+
+        ;; pdfs
+        pdfboxing/pdfboxing {:git/url "https://github.com/dotemacs/pdfboxing"
+                             :sha "3dafff7102d99df072b09626c9349ba3a9719bf6"}}
  :aliases {:test {:extra-paths ["test" "test-resources"]
                   :extra-deps {}}}}

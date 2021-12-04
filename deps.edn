@@ -1,65 +1,35 @@
-{:paths    ["components/common_parser/src"
-            "components/mailer/src"
+{:aliases  {:dev  {:extra-paths ["development/src"
 
-            "bases/deddie/resources"
-            "bases/deddie/src"
-            "bases/dei/resources"
-            "bases/dei/src"
-            "bases/delilah/src"]
- :deps     {org.clojure/clojure                 {:mvn/version "1.10.3"}
-            org.clojure/tools.logging           {:mvn/version "1.1.0"}
-            expound/expound                     {:mvn/version "0.8.6"}
-            clojure.java-time/clojure.java-time {:mvn/version "0.3.2"}
-            clj-time/clj-time                   {:mvn/version "0.15.2"} ;; legacy reasons because clojure-mail uses joda time
-            me.raynes/fs                        {:mvn/version "1.4.6"}
-            com.taoensso/timbre                 {:mvn/version "5.1.0"}
+                                 ; Components
+                                 ;;"components/mailer/src"
+                                 ;;"components/common_parser/src"
 
-            ;; web
-            clj-http/clj-http                         {:mvn/version "3.10.0"}
-            hickory/hickory                           {:mvn/version "0.7.1"}
-            hickory-css-selector/hickory-css-selector {:git/url "https://github.com/taylorwood/hickory-css-selector"
-                                                       :sha "ecdaf9e9ed4845cf3ed6df35c1f95f6b17812117"}
-            etaoin/etaoin                             {:mvn/version "0.4.0"}
-            org.eclipse.jetty/jetty-util              {:mvn/version "9.4.35.v20201120"}
+                                 ; Bases
+                                 ;;"bases/dei/src"
+                                 "bases/deddie/src"
+                                 ;;"bases/delilah/src"
+                                 ]
+                   :extra-deps  {org.clojure/clojure         {:mvn/version "1.10.3"}
+                                 org.clojure/tools.namespace {:mvn/version "0.2.11"}
 
-            ;; mail
-            io.forward/clojure-mail {:mvn/version "1.0.8"}
+                                 delilah/common_parser {:local/root "components/common_parser"}
+                                 delilah/mailer {:local/root "components/mailer"}
 
-            ;; pdfs
-            pdfboxing/pdfboxing {:git/url "https://github.com/dotemacs/pdfboxing"
-                                 :sha "3dafff7102d99df072b09626c9349ba3a9719bf6"}
-
-            ;; philistine
-            integrant/integrant     {:mvn/version "0.8.0"}
-            integrant/repl          {:mvn/version "0.3.1"}
-            ring/ring-core          {:mvn/version "1.8.2"}
-            ring/ring-jetty-adapter {:mvn/version "1.8.2"}
-            ring/ring-defaults      {:mvn/version "0.3.2"}
-
-            metosin/reitit-ring       {:mvn/version "0.5.5"}
-            metosin/reitit-middleware {:mvn/version "0.5.5"}
-
-            selmer/selmer {:mvn/version "1.12.31"}
-
-            hiccup/hiccup {:mvn/version "1.0.5"}
-            }
- :aliases  {:dev  {:extra-paths ["development/src"
-                                 "components/mailer/test-resources"
+                                 delilah/deddie {:local/root "bases/deddie"}
+                                 delilah/dei {:local/root "bases/dei"}
+                                 delilah/delilah {:local/root "bases/delilah"}}}
+            :test {:extra-paths ["components/mailer/test-resources"
                                  "components/mailer/test"
 
                                  "bases/deddie/test-resources"
                                  "bases/deddie/test"
-                                 "bases/dei/test"]
-                   :extra-deps  {org.clojure/tools.namespace {:mvn/version "0.2.11"}
-                                 lambdaisland/kaocha         {:mvn/version "1.0.732"}
-                                 rewrite-clj/rewrite-clj     {:mvn/version "0.6.1"}
-                                 spec-provider/spec-provider {:mvn/version "0.4.14"}}}
-            :test {:extra-paths []
-                   :extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}}
-                   :main-opts   ["-m" "kaocha.runner" "--config-file" "development/kaocha.edn"]}
+                                 ;;"bases/dei/test"
+                                 ]}
+            :test/runner {:extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}}
+                          :main-opts   ["-m" "kaocha.runner" "--config-file" "development/kaocha.edn"]}
 
             :poly {:extra-deps {polylith/clj-poly {:git/url   "https://github.com/polyfy/polylith.git"
-                                                   :sha       "d264d2bbf66d8cf4d745c3f1d3cadf3b142bd193"
+                                                   :sha       "54a10e0a0d444af9cc44106d6670cec827ad8012"
                                                    :deps/root "projects/poly"}}
                    :main-opts  ["-m" "polylith.clj.core.poly-cli.core"]}
 

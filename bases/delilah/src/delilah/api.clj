@@ -1,6 +1,18 @@
 (ns delilah.api
-  (:require [delilah.dei.api :as dei]
+  (:require [clojure.spec.alpha :as s]
+            [me.raynes.fs :as fs]
+
+            [delilah.dei.api :as dei]
             [delilah.deddie.api :as deddie]))
+
+(s/def :delilah/cache-dir fs/directory?)
+(s/def :delilah.driver/type #{:firefox})
+(s/def :delilah.driver/headless boolean?)
+
+(s/def ::driver
+  (s/keys :req-un [:delilah.driver/type]
+          :opt-un [:delilah.driver/headless]))
+
 
 (defn parse [{:keys [provider] :as ctx}]
   (cond

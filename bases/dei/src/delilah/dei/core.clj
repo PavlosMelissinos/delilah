@@ -10,12 +10,12 @@
             [taoensso.timbre :as log]
 
             [delilah.common-parser.interface :as cparser]
-            [delilah.dei.cookies :as cookies]
-            [delilah.dei.spec :as ds]
             [delilah.dei.bill :as bill]
-            [delilah.dei-mailer.spec :as mailer]
+            [delilah.dei.cookies :as cookies]
+            [delilah.dei-mailer.interface :as mailer]
             [delilah.dei.parser :as parser]
-            [delilah.dei.pdf :as pdf]))
+            [delilah.dei.pdf :as pdf]
+            [delilah.dei.spec]))
 
 
 (defn dom [{:keys [cookies] :as ctx}]
@@ -32,7 +32,7 @@
 
 ;;; Bill data (pdf and mail)
 
-(s/def ::bills (s/coll-of ::dei-bill))
+(s/def :delilah.dei/bills (s/coll-of :delilah.dei/bill))
 
 (defn join-bill-data [mail-bills dei-bills]
   (let [mail-bills      (sort-by :date-received mail-bills)
@@ -44,8 +44,8 @@
     (->> (sort-by #(or (bill/date %) (bill/date-received %)) all-bills)
          reverse)))
 (s/fdef join-bill-data
-  :args (s/cat :mail-bills (s/coll-of (s/keys :req-un [::date-received]))
-               :dei-bills  (s/coll-of (s/keys :req-un [::bill-date]))))
+  :args (s/cat :mail-bills (s/coll-of (s/keys :req-un [:delilah.dei/date-received]))
+               :dei-bills  (s/coll-of (s/keys :req-un [:delilah.dei/bill-date]))))
 
 (defn enrich-bills! [bills {::mailer/keys [enrich?] :as cfg}]
   (let [mail-bills (when enrich? (mailer-api/do-task cfg))
@@ -105,7 +105,7 @@
         (save-pdf! bill (format "%s/%s_%s.pdf" download-dir customer-code bill-date))))
     data))
 (s/fdef extract
-  :args (s/cat :cfg ::ds/cfg))
+  :args (s/cat :cfg :delilah.dei/cfg))
 
 (comment
   (def ctx (-> "~/.config/delilah/secrets.edn"

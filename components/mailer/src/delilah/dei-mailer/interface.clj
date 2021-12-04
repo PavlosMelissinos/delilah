@@ -1,4 +1,4 @@
-(ns delilah.dei-mailer.api
+(ns delilah.dei-mailer.interface
   (:require [clojure.spec.alpha :as s]
             [clojure-mail.core :as mail]
             [clojure-mail.folder :as folder]
@@ -7,6 +7,20 @@
 
             [delilah.dei-mailer.parser :as parser]))
 
+;; public specs
+(s/def ::enrich? boolean?)
+(s/def ::imap string?)
+(s/def ::user string?)
+(s/def ::pass string?)
+(s/def ::folder string?)
+(s/def ::filter-fn coll?)
+
+
+(s/def ::cfg
+  (s/keys :req [::user ::pass]
+          :opt [::enrich? ::imap ::filter-fn ::folder])
+
+;; logic
 (defn do-task [{:delilah.dei-mailer/keys [imap user pass folder search]
                 :as cfg}]
   (log/info (str "Retrieving dei bill information from server " imap

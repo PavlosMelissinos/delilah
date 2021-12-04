@@ -1,9 +1,9 @@
-(ns delilah.gr.dei.parser-test
+(ns delilah.dei.parser-test
   (:require [clojure.test :refer [deftest is]]
 
             [java-time :as t]
 
-            [delilah.gr.dei.parser :as sut]))
+            [delilah.dei.parser :as sut]))
 
 (deftest test-format-date
   (let [datestr "2020-02-17"]

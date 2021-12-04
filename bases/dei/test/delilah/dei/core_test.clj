@@ -1,5 +1,5 @@
-(ns delilah.gr.dei.core-test
-  (:require [delilah.gr.dei.core :as sut]
+(ns delilah.dei.core-test
+  (:require [delilah.dei.core :as sut]
             [clojure.test :refer :all]
             [java-time :as t]))
 
