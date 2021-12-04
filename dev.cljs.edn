@@ -1,0 +1,10 @@
+;; docs for figwheel.main metadata options: https://figwheel.org/config-options
+^{:css-dirs     ["target/public/css"]
+  :watch-dirs   ["src" ;;"test"
+                 ]
+  :auto-testing true
+  :open-url     "http://localhost:9090/"
+  }
+;; docs for this map: https://clojurescript.org/reference/compiler-options
+{:main      philistine.ui
+ :output-to "target/public/cljs-out/main.js"}

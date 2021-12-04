@@ -6,7 +6,6 @@
             [me.raynes.fs    :as fs]))
 
 
-
 (defmethod ig/init-key :delilah/services
   [_ config]
   config)
@@ -20,7 +19,6 @@
 
 (defmethod ig/halt-key! :delilah/cache-dir
   [_ _])
-
 
 (defn normalize-path [path]
   (-> path fs/expand-home fs/absolute))

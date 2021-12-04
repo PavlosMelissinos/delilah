@@ -1,7 +1,9 @@
 (ns philistine.service
   (:require [integrant.core :as ig]
             [io.pedestal.http :as http]
-            [io.pedestal.http.route.definition :refer [defroutes]]))
+            [io.pedestal.http.route :as route]
+            #_[io.pedestal.http.route.definition :refer [defroutes]]
+            [philistine.routes :as routes]))
 
 
 (defn hello-world
@@ -9,9 +11,10 @@
   (let [name (get-in request [:params :name] "World")]
     {:status 200 :body (str "Hello, " name "!\n")}))
 
-(defroutes routes
-           [[["/"
-              ["/hello" {:get hello-world}]]]])
+(def routes
+  (route/expand-routes
+    #{["/" :get [interceptors/home]
+       :route-name :home ]}))
 
 (defn service
   ([port]
@@ -19,6 +22,7 @@
         ::http/resource-path  "/public"
         ::http/join?          false
         ::http/type           :jetty
+        ::http/host           "0.0.0.0"
         ::http/port           port}
        (http/default-interceptors)
        (http/dev-interceptors))))
